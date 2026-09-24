@@ -10,9 +10,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{
+  color-scheme:light;
   --bg:#f5f6f1; --surface:#ffffff; --surface-2:#eef1ea; --ink:#16201a; --ink-2:#4d5a51; --muted:#6c776f;
   --line:#e1e6dc; --grid:#edf0e9; --accent:#2f6b3f; --accent-ink:#ffffff; --accent-soft:#e3efe4;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --map-0:#eef1ea; --map-1:#d3e8d6; --map-2:#a9d3b0; --map-3:#74b882; --map-4:#3f9354; --map-5:#23693a;
   --good:#0ca30c; --good-ink:#0a6e0a; --critical:#d03b3b; --critical-ink:#b02f2f; --warning:#fab219; --warning-ink:#8a5a00;
   --shadow:0 1px 2px rgba(22,32,26,.05),0 4px 16px rgba(22,32,26,.05);
   --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
@@ -25,6 +27,7 @@
     --bg:#111512; --surface:#191e1a; --surface-2:#222823; --ink:#eef2ec; --ink-2:#c1cac3; --muted:#9aa59d;
     --line:#2c332e; --grid:#252b26; --accent:#74c387; --accent-ink:#0f1a12; --accent-soft:#213326;
     --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --map-0:#222823; --map-1:#1f3a27; --map-2:#255a33; --map-3:#2f7d44; --map-4:#4aa463; --map-5:#86d198;
     --good-ink:#5fd35f; --critical-ink:#ef7b7b; --warning-ink:#fab219;
     --shadow:none;
   }
@@ -34,14 +37,15 @@
   --bg:#111512; --surface:#191e1a; --surface-2:#222823; --ink:#eef2ec; --ink-2:#c1cac3; --muted:#9aa59d;
   --line:#2c332e; --grid:#252b26; --accent:#74c387; --accent-ink:#0f1a12; --accent-soft:#213326;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --map-0:#222823; --map-1:#1f3a27; --map-2:#255a33; --map-3:#2f7d44; --map-4:#4aa463; --map-5:#86d198;
   --good-ink:#5fd35f; --critical-ink:#ef7b7b; --warning-ink:#fab219;
   --shadow:none;
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-img{max-width:100%}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+body.locked{overflow:hidden}
 .wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
 h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
 h1{font-size:clamp(24px,3.4vw,34px);font-weight:700;line-height:1.1}
@@ -50,12 +54,13 @@ p{margin:0}
 .muted{color:var(--muted)}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
-button,select,.btn{font:inherit}
+button,select,input{font:inherit}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 
 /* header */
 .top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
 .brand{display:flex;flex-direction:column;gap:6px}
+.brand .sub{font-size:13px;color:var(--ink-2)}
 .source{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;max-width:100%}
 .source .txt{display:flex;flex-direction:column;min-width:0}
 .source .txt p{font-size:13px;overflow-wrap:anywhere}
@@ -68,6 +73,7 @@ button,select,.btn{font:inherit}
 @media (prefers-reduced-motion: reduce){.src-dot.busy{animation:none}}
 .btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
 .btn.ghost{background:transparent;color:var(--accent)}
+.btn.dark{background:var(--ink);border-color:var(--ink);color:var(--bg)}
 .btn:disabled{opacity:.5;cursor:default}
 .btn-row{display:flex;gap:8px;flex-wrap:wrap}
 
@@ -75,22 +81,34 @@ button,select,.btn{font:inherit}
 .banner.info{border-left-color:var(--accent)}
 .banner strong{display:block;margin-bottom:2px}
 
+/* date bar */
+.datebar{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
+.seg-ctl{display:flex;flex-wrap:wrap;gap:2px;background:var(--surface-2);border-radius:9px;padding:3px}
+.seg-ctl button{border:0;background:transparent;color:var(--ink-2);padding:6px 12px;border-radius:7px;font-size:13px;cursor:pointer}
+.seg-ctl button[aria-pressed="true"]{background:var(--ink);color:var(--bg);font-weight:600}
+.dgroup{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:3px;border-radius:9px}
+.dgroup.active{background:var(--accent-soft)}
+.dgroup .lab{font-size:12px;color:var(--muted);padding-inline:4px}
+select,input[type="date"]{border:1px solid var(--line);background-color:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;max-width:100%}
+select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236c776f' stroke-width='1.5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:30px}
+
 /* filters */
 .filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px}
 .fgroup{display:flex;flex-direction:column;gap:6px;min-width:0}
-.fgroup > span{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.flabel{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
 .chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
 .chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 .sw{width:10px;height:10px;border-radius:3px;flex:none;display:inline-block}
-select{appearance:none;border:1px solid var(--line);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236c776f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--ink);border-radius:8px;padding:6px 30px 6px 10px;font-size:13px;max-width:100%}
 
 /* kpis */
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
-.kpi .lab{font-size:12px;color:var(--muted);font-weight:500}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:5px}
+.kpi.lead{background:linear-gradient(180deg,var(--accent-soft),var(--surface) 70%)}
+.kpi .lab{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
 .kpi .val{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.6vw,30px);font-variant-numeric:tabular-nums;line-height:1.1}
 .kpi .sub{font-size:12px;color:var(--ink-2)}
+.kpi .cmp{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
 .pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;width:max-content}
 .pill.good{color:var(--good-ink);background:color-mix(in srgb,var(--good) 14%,transparent)}
 .pill.bad{color:var(--critical-ink);background:color-mix(in srgb,var(--critical) 14%,transparent)}
@@ -100,6 +118,7 @@ select{appearance:none;border:1px solid var(--line);background:var(--surface) ur
 /* panels */
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow);min-width:0}
 .panel-h{display:flex;flex-direction:column;gap:4px}
+.panel-h.row{flex-direction:row;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
 .panel-h p{font-size:13px;max-width:70ch}
 .multiples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .multiples.single{grid-template-columns:1fr}
@@ -118,18 +137,21 @@ select{appearance:none;border:1px solid var(--line);background:var(--surface) ur
 .base{stroke:var(--line);stroke-width:1}
 .empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--muted);font-size:13px;text-align:center;border:1px dashed var(--line);border-radius:10px;padding:16px}
 
-.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+.grid2{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:18px;align-items:start}
 
-/* product bars */
-.bars{display:flex;flex-direction:column;gap:9px}
-.brow{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr) 76px;align-items:center;gap:10px}
-.brow .bn{font-size:13px;overflow-wrap:anywhere;line-height:1.25}
-.brow .bn small{display:block;color:var(--muted);font-size:11px}
-.track{display:flex;gap:2px;height:14px;align-items:stretch}
-.seg{height:100%;min-width:2px;cursor:default}
-.seg:first-child{border-radius:0}
-.seg:last-child{border-radius:0 4px 4px 0}
-.brow .bv{font-size:12px;text-align:right}
+/* ranked lists (products, states) */
+.rank{display:flex;flex-direction:column;gap:12px}
+.ri{display:grid;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"n name val" "n bar sub";gap:4px 10px;align-items:center}
+.ri .n{grid-area:n;align-self:start;color:var(--muted);font-family:var(--mono);font-size:12px;min-width:1.4em;padding-top:2px}
+.ri .name{grid-area:name;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri .name small{color:var(--muted);font-size:12px;margin-left:6px}
+.ri .val{grid-area:val;font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.ri .sub{grid-area:sub;font-size:12px;color:var(--muted);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ri .track{grid-area:bar;height:8px;background:var(--surface-2);border-radius:999px;overflow:hidden;display:flex}
+.ri .fill{height:100%;display:flex;gap:2px}
+.ri .seg{height:100%;min-width:2px}
+.ri .seg:last-child{border-radius:0 999px 999px 0}
+.ri.other .name{color:var(--muted)}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
 .legend span{display:inline-flex;align-items:center;gap:6px}
 .linkbtn{background:none;border:0;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;padding:0;align-self:flex-start}
@@ -142,6 +164,18 @@ select{appearance:none;border:1px solid var(--line);background:var(--surface) ur
 .sharelist .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
 .sharelist .r:first-child{border-top:0}
 .sharelist .pct{color:var(--muted);width:48px;text-align:right}
+
+/* region */
+.region{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:24px;align-items:start}
+.map svg{width:100%;height:auto;display:block}
+.map path{stroke:var(--surface);stroke-width:.8;transition:opacity .15s}
+.map path:hover{opacity:.8;stroke:var(--ink);stroke-width:1.2}
+.maplegend{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.maplegend .steps{display:flex;gap:2px}
+.maplegend .steps i{width:22px;height:10px;display:block;border-radius:2px}
+.regtotal{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px}
+.regtotal b{font-family:var(--display);font-size:15px}
+.note{font-size:12px;color:var(--muted);line-height:1.5}
 
 /* tables */
 .tabs{display:flex;gap:6px;flex-wrap:wrap}
@@ -159,35 +193,32 @@ details .tscroll{max-height:360px;overflow:auto}
 
 footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;max-width:90ch}
 
-.tip{position:fixed;z-index:10;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.4;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.tip{position:fixed;z-index:30;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.4;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
 .tip b{font-weight:600}
 .tip .tr{display:flex;justify-content:space-between;gap:14px}
 .tip .tr span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums}
 
-@media (max-width:900px){
-  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .grid2{grid-template-columns:1fr}
-  .multiples{grid-template-columns:1fr}
-}
-@media (max-width:520px){
-  .brow{grid-template-columns:minmax(0,1fr) 70px}
-  .brow .bn{grid-column:1 / -1}
-  .brow .track{grid-column:1}
-  .source{width:100%}
-}
-
 /* login */
-body.locked{overflow:hidden}
 .gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:24px 16px;overflow-y:auto}
 .gate-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px 28px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
 .gate-card h1{font-size:28px}
 .gate-card > p{font-size:14px;color:var(--ink-2)}
-.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:6px;padding:11px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:6px;padding:11px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-size:15px;font-weight:600;cursor:pointer}
 .gbtn:hover:not(:disabled){background:var(--surface-2)}
 .gbtn:disabled{opacity:.5;cursor:default}
 .gbtn svg{width:18px;height:18px;flex:none}
 .gate-msg{border-left:3px solid var(--critical);background:var(--surface-2);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--ink)}
 .gate-foot{font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+
+@media (max-width:900px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2,.region{grid-template-columns:1fr}
+  .multiples{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .source{width:100%}
+  .datebar{flex-direction:column;align-items:stretch}
+}
 </style>
 </head>
 <body class="locked">
@@ -211,9 +242,10 @@ body.locked{overflow:hidden}
     <div class="brand">
       <p class="eyebrow">Fresh Harvest · Cuentas clave</p>
       <h1>Radar Sell-out Autoservicio</h1>
+      <p class="sub" id="rangeText">&nbsp;</p>
     </div>
-    <div class="source" id="source" aria-live="polite">
-      <span class="src-dot busy" id="srcDot"></span>
+    <div class="source" aria-live="polite">
+      <span class="src-dot" id="srcDot"></span>
       <div class="txt">
         <p id="srcTitle">Hoja de Google · Sell-out</p>
         <p id="srcMeta" class="muted">Inicia sesión para cargar los datos</p>
@@ -227,18 +259,30 @@ body.locked{overflow:hidden}
 
   <div id="banner" class="banner" hidden></div>
 
-  <section class="filters" aria-label="Filtros">
-    <div class="fgroup"><span>Cadena</span><div class="chips" id="fChain"></div></div>
-    <div class="fgroup"><label for="fCat"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Categoría</span></label><select id="fCat"></select></div>
-    <div class="fgroup"><label for="fProd"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Producto</span></label><select id="fProd"></select></div>
-    <div class="fgroup"><label for="fWin"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Periodos por cadena</span></label>
-      <select id="fWin">
-        <option value="all">Todo el histórico</option>
-        <option value="13">Últimos 13 periodos</option>
-        <option value="4">Últimos 4 periodos</option>
-        <option value="1">Último periodo cerrado</option>
-      </select>
+  <section class="datebar" aria-label="Fechas a analizar">
+    <div class="seg-ctl" id="presets">
+      <button type="button" data-p="7d">7 días</button>
+      <button type="button" data-p="30d">30 días</button>
+      <button type="button" data-p="month">Este mes</button>
+      <button type="button" data-p="year">Este año</button>
+      <button type="button" data-p="all">Todo</button>
     </div>
+    <div class="dgroup" id="ymGroup">
+      <label class="lab" for="fMonth">Mes</label><select id="fMonth"></select>
+      <label class="lab" for="fYear" hidden>Año</label><select id="fYear" aria-label="Año"></select>
+    </div>
+    <div class="dgroup" id="customGroup">
+      <input type="date" id="dFrom" aria-label="Desde">
+      <span class="lab">al</span>
+      <input type="date" id="dTo" aria-label="Hasta">
+      <button class="btn dark" id="btnApply" type="button">Aplicar</button>
+    </div>
+  </section>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="fgroup"><span class="flabel">Cadena</span><div class="chips" id="fChain"></div></div>
+    <div class="fgroup"><label class="flabel" for="fCat">Categoría</label><select id="fCat"></select></div>
+    <div class="fgroup"><label class="flabel" for="fProd">Producto</label><select id="fProd"></select></div>
   </section>
 
   <section class="kpis" id="kpis" aria-label="Indicadores"></section>
@@ -249,7 +293,7 @@ body.locked{overflow:hidden}
       <p class="muted">Venta en pesos por periodo. Walmart, Waldo's y Al Súper reportan por semana; La Comer por mes. El punto hueco marca un periodo que aún no cierra.</p>
     </div>
     <div class="multiples" id="multiples"></div>
-    <details id="trendDetails">
+    <details>
       <summary>Ver datos por periodo en tabla</summary>
       <div class="tscroll"><table id="trendTable"></table></div>
     </details>
@@ -257,28 +301,35 @@ body.locked{overflow:hidden}
 
   <div class="grid2">
     <section class="panel">
-      <div class="panel-h">
-        <h2>Venta por producto</h2>
-        <p class="muted">Producto homologado, periodos cerrados de la ventana elegida, separado por cadena.</p>
-      </div>
+      <div class="panel-h row"><h2>Lo más vendido</h2><span class="muted" style="font-size:13px">Por venta del periodo</span></div>
       <div class="legend" id="prodLegend"></div>
-      <div class="bars" id="prodBars"></div>
+      <div class="rank" id="prodList"></div>
       <button class="linkbtn" id="prodMore" type="button" hidden></button>
     </section>
     <section class="panel">
-      <div class="panel-h">
-        <h2>Participación por cadena</h2>
-        <p class="muted">Peso de cada cadena en la venta de la ventana elegida.</p>
-      </div>
+      <div class="panel-h"><h2>Participación por cadena</h2><p class="muted">Peso de cada cadena en la venta del periodo.</p></div>
       <div class="sharebar" id="shareBar"></div>
       <div class="sharelist" id="shareList"></div>
     </section>
   </div>
 
   <section class="panel">
+    <div class="panel-h"><h2>Ventas por región</h2></div>
+    <div class="regtotal" id="regTotal"></div>
+    <div class="region">
+      <div>
+        <div class="map" id="map"></div>
+        <div class="maplegend" id="mapLegend"></div>
+      </div>
+      <div class="rank" id="regList"></div>
+    </div>
+    <p class="note" id="regNote"></p>
+  </section>
+
+  <section class="panel">
     <div class="panel-h">
       <h2>Tiendas</h2>
-      <p class="muted" id="storeNote">Acumulado de la ventana que reporta cada cadena e inventario del último corte. Waldo's no reporta a nivel tienda en su serie.</p>
+      <p class="muted" id="storeNote"></p>
     </div>
     <div class="tabs" role="tablist">
       <button class="tab" role="tab" id="tabTop" aria-selected="true" type="button">Mayor venta</button>
@@ -287,17 +338,20 @@ body.locked{overflow:hidden}
     <div class="tscroll"><table id="storeTable"></table></div>
   </section>
 
-  <footer id="foot">
+  <footer>
     <p>Los datos se leen de la hoja de Google cada vez que inicias sesión, y se revisan de nuevo cada 10 minutos mientras el tablero está abierto. Un dato vacío significa que la cadena no lo reportó (no es cero).</p>
+    <p>Un periodo entra en el rango de fechas si alguno de sus días cae dentro del rango.</p>
     <p id="corte"></p>
+    <p>Mapa: <a href="https://github.com/VictorCazanave/svg-maps" target="_blank" rel="noopener" style="color:inherit">svg-maps</a>, licencia CC BY 4.0.</p>
   </footer>
 </div>
 <div class="tip" id="tip" hidden></div>
 
+<script src="mx-estados.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script>
 (() => {
-  // Configuración del acceso con Google (ver LEEME en el README del repositorio).
+  // Configuración del acceso con Google (ver README del repositorio).
   // CLIENT_ID: el ID de cliente OAuth creado en Google Cloud Console para este sitio.
   const CLIENT_ID = "544430489704-bors8vhtl8cqbtkp7gl9opqpgb6us0u3.apps.googleusercontent.com";
   // SHEET_ID: la parte de la URL de la hoja entre /d/ y /edit. La hoja debe estar en acceso
@@ -305,105 +359,222 @@ body.locked{overflow:hidden}
   const SHEET_ID = "1FYVjV3c0HrzrSK-spsIPfzyvh3rlnfDKZ8tutDOvrYo";
   const POLL_MS = 10 * 60 * 1000;
   const KNOWN = ["Walmart", "Waldo's", "Al Súper", "La Comer"];
+  const MONTHS = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 
   const $ = id => document.getElementById(id);
   const fmtMoney = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
+  const fmtMoney2 = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtInt = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 });
   const fmtPct = new Intl.NumberFormat("es-MX", { style: "percent", maximumFractionDigits: 1 });
   const fmtDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" });
+  const fmtDay = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  const fmtDayShort = new Intl.DateTimeFormat("es-MX", { day: "numeric", month: "short", timeZone: "UTC" });
   const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const money = v => v == null ? "—" : fmtMoney.format(v);
+  const int = v => v == null ? "—" : fmtInt.format(v);
   const moneyC = v => {
     if (v == null) return "—";
     const a = Math.abs(v), t = (n, u) => "$" + n.toFixed(1).replace(/\.0$/, "") + u;
     return a >= 1e6 ? t(v / 1e6, " M") : a >= 1e3 ? t(v / 1e3, " mil") : "$" + fmtInt.format(v);
   };
-  const int = v => v == null ? "—" : fmtInt.format(v);
+
+  // ---------- dates as whole UTC day numbers ----------
+  const DAY = 864e5;
+  const dayOf = (y, m, d) => Math.floor(Date.UTC(y, m, d) / DAY);
+  const dayDate = n => new Date(n * DAY);
+  const todayNum = () => { const t = new Date(); return dayOf(t.getFullYear(), t.getMonth(), t.getDate()); };
+  const dayISO = n => dayDate(n).toISOString().slice(0, 10);
+  function toDay(v) {
+    if (v == null || v === "") return null;
+    if (v instanceof Date) return isNaN(v) ? null : dayOf(v.getFullYear(), v.getMonth(), v.getDate());
+    if (typeof v === "number") return v > 20000 && v < 90000 ? Math.round(v) - 25569 : null; // número de serie de Sheets/Excel
+    const s = String(v).trim();
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+    if (m) return dayOf(+m[1], m[2] - 1, +m[3]);
+    m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return dayOf(+m[3], m[2] - 1, +m[1]);
+    return null;
+  }
+  function rangeLabel(r) {
+    if (r.all) return "Todo el histórico";
+    const a = dayDate(r.from), b = dayDate(r.to);
+    return `Del ${(a.getUTCFullYear() === b.getUTCFullYear() ? fmtDayShort : fmtDay).format(a)} al ${fmtDay.format(b)}`;
+  }
 
   // ---------- state ----------
-  const store = (() => { try { return JSON.parse(localStorage.getItem("radar-filters") || "{}"); } catch { return {}; } })();
-  const F = { chain: store.chain || "all", cat: store.cat || "all", prod: store.prod || "all", win: store.win || "all" };
-  let D = null;            // parsed data
-  let tab = "top", showAllProd = false;
-  const saveF = () => { try { localStorage.setItem("radar-filters", JSON.stringify(F)); } catch {} };
+  const saved = (() => { try { return JSON.parse(localStorage.getItem("radar-web") || "{}"); } catch { return {}; } })();
+  const F = { chain: saved.chain || "all", cat: saved.cat || "all", prod: saved.prod || "all" };
+  const T = { preset: saved.preset || "all", from: saved.from || null, to: saved.to || null, year: saved.year || null, month: saved.month ?? "all" };
+  let D = null, R = { all: true }, tab = "top", showAllProd = false;
+  const save = () => { try { localStorage.setItem("radar-web", JSON.stringify({ ...F, ...T })); } catch {} };
 
   // ---------- parsing ----------
   const num = v => { if (v == null || v === "") return null; const n = typeof v === "number" ? v : Number(String(v).replace(/[$,\s]/g, "")); return Number.isFinite(n) ? n : null; };
   const bool = v => v === true || String(v).trim().toUpperCase() === "TRUE" || v === 1;
   const str = v => v == null ? "" : String(v).trim();
-  const toDate = v => { if (v instanceof Date && !isNaN(v)) return v; if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; };
+  const norm = s => str(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
 
-  function sheet(wb, name) {
-    if (wb.__rows) return wb.__rows[name] || null;
-    const key = wb.SheetNames.find(n => n.trim().toLowerCase() === name);
-    return key ? XLSX.utils.sheet_to_json(wb.Sheets[key], { defval: null, raw: true }) : null;
+  // State names and codes as they appear in the chains' catalogs → map ids.
+  const ST = { AGU: "agu", AGUASCALIENTES: "agu", BCN: "bcn", "BAJA CALIFORNIA": "bcn", BCS: "bcs", "BAJA CALIFORNIA SUR": "bcs", CAM: "cam", CAMPECHE: "cam",
+    CHP: "chp", CHIAPAS: "chp", CHH: "chh", CHIHUAHUA: "chh", COA: "coa", COAHUILA: "coa", COL: "col", COLIMA: "col", CMX: "cmx", CM: "cmx", CDMX: "cmx",
+    "CIUDAD DE MEXICO": "cmx", DUR: "dur", DURANGO: "dur", GUA: "gua", GUANAJUATO: "gua", GRO: "gro", GUERRERO: "gro", HID: "hid", HIDALGO: "hid",
+    JAL: "jal", JALISCO: "jal", MEX: "mex", MEXICO: "mex", "ESTADO DE MEXICO": "mex", MIC: "mic", MICHOACAN: "mic", MOR: "mor", MORELOS: "mor",
+    NAY: "nay", NAYARIT: "nay", NLE: "nle", "NUEVO LEON": "nle", OAX: "oax", OA: "oax", OAXACA: "oax", PUE: "pue", P: "pue", PUEBLA: "pue",
+    QUE: "que", QUERETARO: "que", ROO: "roo", "QUINTANA ROO": "roo", SLP: "slp", "SAN LUIS POTOSI": "slp", SIN: "sin", SINALOA: "sin",
+    SON: "son", SONORA: "son", TAB: "tab", TABASCO: "tab", TAM: "tam", TAMAULIPAS: "tam", TLA: "tla", TLAXCALA: "tla", VER: "ver", VERACRUZ: "ver",
+    YUC: "yuc", YUCATAN: "yuc", ZAC: "zac", ZACATECAS: "zac" };
+  const LONG = Object.keys(ST).filter(k => k.length > 4).sort((a, b) => b.length - a.length);
+  function stateOf(zona, ciudad) {
+    const z = norm(zona);
+    if (ST[z]) return ST[z];
+    const c = norm(ciudad) + " " + z;
+    for (const k of LONG) if (c.includes(k)) return ST[k];
+    return null;
   }
 
-  function parseWorkbook(wb) {
-    const serieRaw = sheet(wb, "fact_serie");
-    if (!serieRaw) throw { code: "bad_file", message: "El archivo no tiene la hoja fact_serie." };
-    const serie = serieRaw.filter(r => r.cadena).map(r => {
-      const ini = toDate(r.fecha_inicio), periodo = str(r.periodo);
+  function parseSheets(S) {
+    const serie = S.fact_serie.filter(r => r.cadena).map(r => {
+      const periodo = str(r.periodo), ini = toDay(r.fecha_inicio), fin = toDay(r.fecha_fin);
       return {
         cadena: str(r.cadena), freq: str(r.frecuencia), periodo, label: str(r.periodo_label) || periodo,
-        key: Number(periodo.replace(/\D/g, "")) || (ini ? ini.getTime() : 0),
+        key: Number(periodo.replace(/\D/g, "")) || ini || 0, ini, fin: fin ?? ini,
         parcial: bool(r.periodo_parcial), producto: str(r.producto) || str(r.sku_cadena), categoria: str(r.categoria) || "Sin categoría",
         pz: num(r.piezas), venta: num(r.venta_pesos), inv: num(r.inventario_pz), tiendas: num(r.tiendas_con_venta)
       };
     });
-    const tiendas = (sheet(wb, "dim_tiendas") || []).filter(r => r.cadena).map(r => ({
+    const prodCat = {};
+    serie.forEach(r => { prodCat[r.producto] = r.categoria; });
+    const tiendas = (S.dim_tiendas || []).filter(r => r.cadena).map(r => ({
       cadena: str(r.cadena), no: str(r.tienda_no), tienda: str(r.tienda), ciudad: str(r.ciudad), zona: str(r.estado_zona),
       formato: str(r.formato_segmento), pz: num(r.pz_ventana), venta: num(r.venta_ventana), inv: num(r.inv_actual),
-      skus: num(r.skus_con_venta), sinVenta: bool(r.inv_sin_venta), periodos: num(r.ventana_periodos)
+      skus: num(r.skus_con_venta), sinVenta: bool(r.inv_sin_venta)
     }));
+    tiendas.forEach(t => { t.estado = stateOf(t.zona, t.ciudad); });
+    const storeIdx = new Map(tiendas.map(t => [t.cadena + "|" + t.no, t]));
+    const tsku = (S.fact_tienda_sku || []).filter(r => r.cadena).map(r => {
+      const ini = toDay(r.fecha_inicio);
+      return { cadena: str(r.cadena), no: str(r.tienda_no), tienda: str(r.tienda), ini, fin: toDay(r.fecha_fin) ?? ini,
+        producto: str(r.producto), pz: num(r.piezas), venta: num(r.venta_pesos) };
+    });
     const leeme = {};
-    (sheet(wb, "leeme") || []).forEach(r => { const k = str(r.Campo || r.campo); if (k) leeme[k] = str(r["Descripción"] || r.Descripcion || r.descripcion); });
+    (S.leeme || []).forEach(r => { const k = str(r.Campo || r.campo); if (k) leeme[k] = str(r["Descripción"] || r.Descripcion || r.descripcion); });
 
     const chains = [...KNOWN.filter(c => serie.some(r => r.cadena === c)), ...[...new Set(serie.map(r => r.cadena))].filter(c => !KNOWN.includes(c)).sort()];
     const slot = {}; chains.forEach((c, i) => slot[c] = `var(--s${Math.min(i + 1, 8)})`);
-    // ordered periods per chain
     const periods = {};
     chains.forEach(c => {
       const m = new Map();
       serie.filter(r => r.cadena === c).forEach(r => {
-        const p = m.get(r.periodo) || { periodo: r.periodo, label: r.label, key: r.key, parcial: false, freq: r.freq };
+        const p = m.get(r.periodo) || { periodo: r.periodo, label: r.label, key: r.key, ini: r.ini, fin: r.fin, parcial: false, freq: r.freq };
         p.parcial = p.parcial || r.parcial; m.set(r.periodo, p);
       });
       periods[c] = [...m.values()].sort((a, b) => a.key - b.key);
     });
-    return { serie, tiendas, leeme, chains, slot, periods };
+    const datedSet = new Set(chains.filter(c => periods[c].some(p => p.ini != null)));
+    const tskuChains = new Set(tsku.map(r => r.cadena));
+    const fins = serie.filter(r => r.fin != null).map(r => r.fin), inis = serie.filter(r => r.ini != null).map(r => r.ini);
+    const closedFins = serie.filter(r => r.fin != null && !r.parcial).map(r => r.fin);
+    return { serie, tiendas, storeIdx, tsku, tskuChains, prodCat, leeme, chains, slot, periods, dated: c => datedSet.has(c),
+      lastData: fins.length ? Math.max(...fins) : todayNum(), lastClosed: closedFins.length ? Math.max(...closedFins) : null, firstData: inis.length ? Math.min(...inis) : todayNum() };
   }
+
+  // ---------- date range ----------
+  // Presets count back from the latest reported day (or today, if the data runs past it).
+  const anchor = () => Math.min(todayNum(), D.lastData);
+  function computeRange() {
+    const a = anchor(), d = dayDate(a), y = d.getUTCFullYear(), m = d.getUTCMonth();
+    switch (T.preset) {
+      case "7d": return { from: a - 6, to: a };
+      case "30d": return { from: a - 29, to: a };
+      case "month": return { from: dayOf(y, m, 1), to: a };
+      case "year": return { from: dayOf(y, 0, 1), to: a };
+      case "ym": {
+        const yy = Number(T.year) || y;
+        if (T.month === "all") return { from: dayOf(yy, 0, 1), to: dayOf(yy, 11, 31) };
+        const mm = Number(T.month);
+        return { from: dayOf(yy, mm, 1), to: dayOf(yy, mm + 1, 0) };
+      }
+      case "custom": {
+        const f = toDay(T.from), t = toDay(T.to);
+        return f != null && t != null ? { from: Math.min(f, t), to: Math.max(f, t) } : { all: true };
+      }
+      default: return { all: true };
+    }
+  }
+  const prevRange = r => r.all ? null : { from: r.from - (r.to - r.from + 1), to: r.from - 1 };
+  const inR = (p, r) => r.all || (p.ini != null && p.ini <= r.to && (p.fin ?? p.ini) >= r.from);
 
   // ---------- selection helpers ----------
   const color = c => D.slot[c] || "var(--muted)";
   const visibleChains = () => F.chain === "all" ? D.chains : D.chains.filter(c => c === F.chain);
-  const rowsFor = c => D.serie.filter(r => r.cadena === c && (F.cat === "all" || r.categoria === F.cat) && (F.prod === "all" || r.producto === F.prod));
+  const prodOk = (producto, categoria) => (F.cat === "all" || (categoria ?? D.prodCat[producto]) === F.cat) && (F.prod === "all" || producto === F.prod);
+  const rowsFor = c => D.serie.filter(r => r.cadena === c && prodOk(r.producto, r.categoria));
 
-  // periods in window for a chain: last N closed periods, plus any open period after them
-  function windowPeriods(c) {
-    const ps = D.periods[c] || [];
-    if (F.win === "all") return ps;
-    const n = Number(F.win);
-    const closed = ps.filter(p => !p.parcial);
-    const keep = new Set(closed.slice(-n).map(p => p.periodo));
-    const lastKey = closed.length ? closed[closed.length - 1].key : -Infinity;
-    return ps.filter(p => keep.has(p.periodo) || (p.parcial && p.key >= lastKey));
-  }
-
-  function seriesFor(c) {
-    const rows = rowsFor(c), by = new Map();
-    rows.forEach(r => {
-      const a = by.get(r.periodo) || { venta: null, pz: null, tiendas: null, inv: null };
-      if (r.venta != null) a.venta = (a.venta || 0) + r.venta;
-      if (r.pz != null) a.pz = (a.pz || 0) + r.pz;
-      if (r.inv != null) a.inv = (a.inv || 0) + r.inv;
-      if (r.tiendas != null) a.tiendas = Math.max(a.tiendas || 0, r.tiendas);
-      by.set(r.periodo, a);
+  function seriesFor(c, r = R) {
+    const by = new Map();
+    rowsFor(c).forEach(x => {
+      const a = by.get(x.periodo) || { venta: null, pz: null, tiendas: null, inv: null };
+      if (x.venta != null) a.venta = (a.venta || 0) + x.venta;
+      if (x.pz != null) a.pz = (a.pz || 0) + x.pz;
+      if (x.inv != null) a.inv = (a.inv || 0) + x.inv;
+      if (x.tiendas != null) a.tiendas = Math.max(a.tiendas || 0, x.tiendas);
+      by.set(x.periodo, a);
     });
-    return windowPeriods(c).map(p => ({ ...p, ...(by.get(p.periodo) || { venta: null, pz: null, tiendas: null, inv: null }) }));
+    return D.periods[c].filter(p => inR(p, r)).map(p => ({ ...p, ...(by.get(p.periodo) || { venta: null, pz: null, tiendas: null, inv: null }) }));
+  }
+  function totals(r) {
+    let v = 0, q = 0, any = false, open = false;
+    visibleChains().forEach(c => seriesFor(c, r).forEach(p => {
+      if (p.venta != null) { v += p.venta; any = true; if (p.parcial) open = true; }
+      if (p.pz != null) q += p.pz;
+    }));
+    return { v, q, any, open };
+  }
+  const undatedHidden = () => R.all ? [] : visibleChains().filter(c => !D.dated(c));
+
+  // Store-level sales in range: store×period detail where the chain has it; the chain's window totals otherwise (only for "Todo").
+  function storeAgg() {
+    const m = new Map();
+    const add = (t, cadena, no, tienda, venta, pz) => {
+      const k = cadena + "|" + no;
+      const a = m.get(k) || { cadena, no, tienda: tienda || (t && t.tienda) || no, estado: t ? t.estado : null, zona: t ? [t.ciudad, t.zona].filter(Boolean).join(", ") : "",
+        formato: t ? t.formato : "", inv: t ? t.inv : null, skus: t ? t.skus : null, venta: 0, pz: 0 };
+      a.venta += venta || 0; a.pz += pz || 0; m.set(k, a);
+    };
+    const cs = new Set(visibleChains());
+    D.tsku.forEach(x => {
+      if (!cs.has(x.cadena) || !inR(x, R) || !prodOk(x.producto)) return;
+      add(D.storeIdx.get(x.cadena + "|" + x.no), x.cadena, x.no, x.tienda, x.venta, x.pz);
+    });
+    const byWindow = [];
+    if (R.all && F.cat === "all" && F.prod === "all") {
+      D.tiendas.forEach(t => {
+        if (!cs.has(t.cadena) || D.tskuChains.has(t.cadena) || !(t.venta > 0)) return;
+        add(t, t.cadena, t.no, t.tienda, t.venta, t.pz);
+      });
+      cs.forEach(c => { if (!D.tskuChains.has(c) && D.tiendas.some(t => t.cadena === c)) byWindow.push(c); });
+    }
+    return { list: [...m.values()].filter(s => s.venta > 0), byWindow };
   }
 
   // ---------- rendering ----------
+  function renderDateBar() {
+    document.querySelectorAll("#presets button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === T.preset));
+    const years = [...new Set(D.serie.filter(r => r.ini != null).map(r => dayDate(r.ini).getUTCFullYear()))].sort((a, b) => b - a);
+    const cy = dayDate(anchor()).getUTCFullYear();
+    const selY = T.preset === "ym" && T.year ? Number(T.year) : (years.includes(cy) ? cy : years[0]);
+    $("fYear").innerHTML = years.map(y => `<option value="${y}" ${y === selY ? "selected" : ""}>${y}</option>`).join("");
+    $("fMonth").innerHTML = `<option value="all">Todo el año</option>` + MONTHS.map((n, i) => `<option value="${i}">${n[0].toUpperCase() + n.slice(1)}</option>`).join("");
+    $("fMonth").value = T.preset === "ym" ? String(T.month) : "all";
+    $("ymGroup").classList.toggle("active", T.preset === "ym");
+    $("customGroup").classList.toggle("active", T.preset === "custom");
+    const r = R.all ? { from: D.firstData, to: anchor() } : R;
+    $("dFrom").value = dayISO(r.from); $("dTo").value = dayISO(r.to);
+    $("dFrom").min = $("dTo").min = dayISO(D.firstData);
+    $("dFrom").max = $("dTo").max = dayISO(todayNum());
+    $("rangeText").textContent = `${rangeLabel(R)} · pesos` + (D.lastClosed != null ? ` · último periodo cerrado: ${fmtDay.format(dayDate(D.lastClosed))}` : "");
+  }
+
   function renderFilters() {
     const chips = [`<button class="chip" type="button" data-c="all" aria-pressed="${F.chain === "all"}">Todas</button>`]
       .concat(D.chains.map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${F.chain === c}"><span class="sw" style="background:${color(c)}"></span>${esc(c)}</button>`));
@@ -414,34 +585,33 @@ body.locked{overflow:hidden}
     const prods = [...new Set(D.serie.filter(r => F.cat === "all" || r.categoria === F.cat).map(r => r.producto))].sort((a, b) => a.localeCompare(b, "es"));
     if (F.prod !== "all" && !prods.includes(F.prod)) F.prod = "all";
     $("fProd").innerHTML = `<option value="all">Todos</option>` + prods.map(p => `<option ${p === F.prod ? "selected" : ""}>${esc(p)}</option>`).join("");
-    $("fWin").value = F.win;
+  }
+
+  function deltaHtml(cur, prev) {
+    if (R.all) return `<span>Todo el histórico</span>`;
+    if (prev == null || !(prev > 0) || cur == null) return `<span>Sin periodo anterior para comparar</span>`;
+    const d = cur / prev - 1;
+    return `<span class="pill ${d >= 0 ? "good" : "bad"}">${d >= 0 ? "▲ +" : "▼ −"}${fmtPct.format(Math.abs(d))}</span><span>vs periodo anterior</span>`;
   }
 
   function renderKpis() {
-    let venta = 0, pz = 0, any = false;
-    const perChain = {};
-    visibleChains().forEach(c => {
-      const s = seriesFor(c).filter(p => !p.parcial);
-      const v = s.reduce((a, p) => a + (p.venta || 0), 0), q = s.reduce((a, p) => a + (p.pz || 0), 0);
-      perChain[c] = v; venta += v; pz += q; if (s.some(p => p.venta != null)) any = true;
-    });
+    const cur = totals(R), pr = prevRange(R), prev = pr ? totals(pr) : null;
     const alerts = D.tiendas.filter(t => t.sinVenta && (F.chain === "all" || t.cadena === F.chain)).length;
-    const nStores = D.tiendas.filter(t => (F.chain === "all" || t.cadena === F.chain) && (t.venta || 0) > 0).length;
-    const winTxt = F.win === "all" ? "Todo el histórico disponible" : F.win === "1" ? "Último periodo cerrado de cada cadena" : `Últimos ${F.win} periodos cerrados por cadena`;
+    const hidden = undatedHidden();
+    const sub = hidden.length ? `Sin ${hidden.join(", ")} (no reporta fechas)` : cur.open ? "Incluye periodos que aún no cierran" : "Sell-out reportado por las cadenas";
+    const price = cur.q ? cur.v / cur.q : null, pprice = prev && prev.q ? prev.v / prev.q : null;
     $("kpis").innerHTML = `
-      <div class="kpi"><span class="lab">Venta sell-out</span><span class="val">${any ? moneyC(venta) : "—"}</span><span class="sub">${esc(winTxt)}</span></div>
-      <div class="kpi"><span class="lab">Piezas vendidas</span><span class="val">${any ? int(pz) : "—"}</span><span class="sub">Periodos cerrados</span></div>
-      <div class="kpi"><span class="lab">Precio promedio por pieza</span><span class="val">${pz ? money(venta / pz).replace(/\.00$/, "") : "—"}</span><span class="sub">Venta ÷ piezas</span></div>
-      <div class="kpi"><span class="lab">Tiendas con inventario y sin venta</span><span class="val">${int(alerts)}</span>
-        <span class="pill ${alerts ? "warn" : "good"}">${alerts ? "▲ Revisar anaquel" : "✓ Todo con venta"}</span></div>`;
-    void nStores;
+      <div class="kpi lead"><span class="lab">Ventas</span><span class="val">${cur.any ? fmtMoney2.format(cur.v) : "—"}</span><span class="sub">${esc(sub)}</span><div class="cmp">${deltaHtml(cur.any ? cur.v : null, prev && prev.any ? prev.v : null)}</div></div>
+      <div class="kpi"><span class="lab">Piezas</span><span class="val">${cur.any ? int(cur.q) : "—"}</span><span class="sub">Unidades vendidas</span><div class="cmp">${deltaHtml(cur.any ? cur.q : null, prev && prev.any ? prev.q : null)}</div></div>
+      <div class="kpi"><span class="lab">Precio promedio</span><span class="val">${price != null ? fmtMoney2.format(price) : "—"}</span><span class="sub">Venta por pieza</span><div class="cmp">${deltaHtml(price, pprice)}</div></div>
+      <div class="kpi"><span class="lab">Inventario sin venta</span><span class="val">${int(alerts)}</span><span class="sub">Tiendas con inventario y 0 ventas (último corte)</span>
+        <div class="cmp"><span class="pill ${alerts ? "warn" : "good"}">${alerts ? "▲ Revisar anaquel" : "✓ Todo con venta"}</span></div></div>`;
   }
 
   function nice(v) { if (!(v > 0)) return 1; const e = 10 ** Math.floor(Math.log10(v)), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; }
 
   function renderMultiples() {
-    const cs = visibleChains();
-    const box = $("multiples");
+    const cs = visibleChains(), box = $("multiples");
     box.classList.toggle("single", cs.length === 1);
     box.innerHTML = cs.map((c, i) => `
       <article class="mcard" data-i="${i}">
@@ -452,48 +622,49 @@ body.locked{overflow:hidden}
         <div class="chart" data-chart></div>
       </article>`).join("");
     cs.forEach((c, i) => {
-      const card = box.children[i];
-      const pts = seriesFor(c);
-      const closed = pts.filter(p => !p.parcial && p.venta != null);
-      const all = D.periods[c];
-      const freq = (all[0] && all[0].freq) || "";
-      card.querySelector("[data-meta]").textContent = `${freq ? freq[0].toUpperCase() + freq.slice(1) : ""} · ${pts.length} periodos${pts.length ? ` · ${pts[0].label} a ${pts[pts.length - 1].label}` : ""}`;
+      const card = box.children[i], el = card.querySelector("[data-chart]");
+      if (!R.all && !D.dated(c)) {
+        card.querySelector("[data-meta]").textContent = "Sin fechas en el portal de la cadena";
+        el.innerHTML = `<div class="empty">${esc(c)} no reporta fechas, así que solo aparece con «Todo».</div>`;
+        return;
+      }
+      const pts = seriesFor(c), closed = pts.filter(p => !p.parcial && p.venta != null);
+      const freq = (D.periods[c][0] && D.periods[c][0].freq) || "";
+      card.querySelector("[data-meta]").textContent = `${freq ? freq[0].toUpperCase() + freq.slice(1) : ""} · ${pts.length} periodo${pts.length === 1 ? "" : "s"}${pts.length ? ` · ${pts[0].label} a ${pts[pts.length - 1].label}` : ""}`;
       const last = closed[closed.length - 1], prev = closed[closed.length - 2];
       let delta = "";
       if (last && prev && prev.venta) {
         const d = last.venta / prev.venta - 1;
         delta = `<span class="pill ${d >= 0 ? "good" : "bad"}">${d >= 0 ? "▲" : "▼"} ${fmtPct.format(Math.abs(d))} vs ${esc(prev.label)}</span>`;
       }
-      card.querySelector("[data-last]").innerHTML = last
-        ? `<span class="l">Último cerrado · ${esc(last.label)}</span><span class="v">${money(last.venta)}</span>${delta}`
-        : `<span class="l">Sin periodos cerrados con venta</span>`;
-      drawLine(card.querySelector("[data-chart]"), pts, color(c));
+      card.querySelector("[data-last]").innerHTML = last ? `<span class="l">Último cerrado · ${esc(last.label)}</span><span class="v">${money(last.venta)}</span>${delta}` : "";
+      if (!pts.length) { el.innerHTML = `<div class="empty">Sin periodos de ${esc(c)} en estas fechas.</div>`; return; }
+      drawLine(el, pts, color(c));
     });
     renderTrendTable();
   }
 
   function drawLine(el, pts, col) {
-    if (!pts.some(p => p.venta != null)) { el.innerHTML = `<div class="empty">Esta cadena no reporta venta para el filtro elegido.</div>`; return; }
-    const W = Math.max(el.clientWidth, 260), H = el.clientHeight || 190, m = { t: 10, r: 14, b: 22, l: 56 };
+    if (!pts.some(p => p.venta != null)) { el.innerHTML = `<div class="empty">Sin venta para el filtro elegido.</div>`; return; }
+    const W = Math.max(el.clientWidth, 260), H = el.clientHeight || 190, m = { t: 10, r: 14, b: 22, l: 60 };
     const iw = W - m.l - m.r, ih = H - m.t - m.b;
     const max = nice(Math.max(...pts.map(p => p.venta || 0)));
     const x = i => m.l + (pts.length === 1 ? iw / 2 : (i / (pts.length - 1)) * iw);
     const y = v => m.t + ih - (v / max) * ih;
     const ticks = [0, max / 2, max];
-    // segments split at nulls; closed segment vs partial tail
-    let line = "", area = "", dash = "";
-    let run = [];
+    let line = "", area = "", dash = "", run = [];
+    const P = i => `${x(i).toFixed(1)},${y(pts[i].venta).toFixed(1)}`;
     const flush = () => {
       if (!run.length) return;
-      line += "M" + run.map(i => `${x(i).toFixed(1)},${y(pts[i].venta).toFixed(1)}`).join("L");
-      area += `M${x(run[0]).toFixed(1)},${y(0)}L` + run.map(i => `${x(i).toFixed(1)},${y(pts[i].venta).toFixed(1)}`).join("L") + `L${x(run[run.length - 1]).toFixed(1)},${y(0)}Z`;
+      line += "M" + run.map(P).join("L");
+      area += `M${x(run[0]).toFixed(1)},${y(0)}L` + run.map(P).join("L") + `L${x(run[run.length - 1]).toFixed(1)},${y(0)}Z`;
       run = [];
     };
     pts.forEach((p, i) => {
       if (p.venta == null) { flush(); return; }
       if (p.parcial) {
         const j = i - 1;
-        if (j >= 0 && pts[j].venta != null && !pts[j].parcial) dash += `M${x(j).toFixed(1)},${y(pts[j].venta).toFixed(1)}L${x(i).toFixed(1)},${y(p.venta).toFixed(1)}`;
+        if (j >= 0 && pts[j].venta != null && !pts[j].parcial) dash += `M${P(j)}L${P(i)}`;
         flush(); return;
       }
       run.push(i);
@@ -518,13 +689,13 @@ body.locked{overflow:hidden}
     </svg>`;
     const svg = el.querySelector("svg"), hov = svg.querySelector("[data-hover]"), hit = svg.querySelector("[data-hit]");
     const move = ev => {
-      const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (W / r.width);
+      const rc = svg.getBoundingClientRect(), px = (ev.clientX - rc.left) * (W / rc.width);
       const i = Math.max(0, Math.min(pts.length - 1, Math.round(pts.length === 1 ? 0 : ((px - m.l) / iw) * (pts.length - 1))));
-      const p = pts[i];
-      hov.style.display = ""; hov.querySelector("line").setAttribute("x1", x(i)); hov.querySelector("line").setAttribute("x2", x(i));
-      const c = hov.querySelector("circle");
+      const p = pts[i], ln = hov.querySelector("line"), c = hov.querySelector("circle");
+      hov.style.display = ""; ln.setAttribute("x1", x(i)); ln.setAttribute("x2", x(i));
       if (p.venta == null) c.setAttribute("r", 0); else { c.setAttribute("r", 5); c.setAttribute("cx", x(i)); c.setAttribute("cy", y(p.venta)); }
-      showTip(ev, `<b>${esc(p.label)}</b>${p.parcial ? " · periodo abierto" : ""}
+      const dates = p.ini != null ? `<div class="tr"><span>Fechas</span><span>${fmtDayShort.format(dayDate(p.ini))} – ${fmtDayShort.format(dayDate(p.fin))}</span></div>` : "";
+      showTip(ev, `<b>${esc(p.label)}</b>${p.parcial ? " · periodo abierto" : ""}${dates}
         <div class="tr"><span>Venta</span><span>${money(p.venta)}</span></div>
         <div class="tr"><span>Piezas</span><span>${int(p.pz)}</span></div>
         <div class="tr"><span>Tiendas con venta</span><span>${int(p.tiendas)}</span></div>
@@ -538,83 +709,137 @@ body.locked{overflow:hidden}
   function renderTrendTable() {
     const rows = [];
     visibleChains().forEach(c => seriesFor(c).slice().reverse().forEach(p => rows.push([c, p])));
-    $("trendTable").innerHTML = `<thead><tr><th>Cadena</th><th>Periodo</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Tiendas con venta</th><th>Estado</th></tr></thead><tbody>` +
-      rows.map(([c, p]) => `<tr><td><span class="sw" style="background:${color(c)};margin-right:8px"></span>${esc(c)}</td><td>${esc(p.label)}</td><td class="n">${money(p.venta)}</td><td class="n">${int(p.pz)}</td><td class="n">${int(p.tiendas)}</td><td>${p.parcial ? '<span class="pill neutral">Abierto</span>' : "Cerrado"}</td></tr>`).join("") + "</tbody>";
+    $("trendTable").innerHTML = `<thead><tr><th>Cadena</th><th>Periodo</th><th>Fechas</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Tiendas con venta</th><th>Estado</th></tr></thead><tbody>` +
+      rows.map(([c, p]) => `<tr><td><span class="sw" style="background:${color(c)};margin-right:8px"></span>${esc(c)}</td><td>${esc(p.label)}</td><td>${p.ini != null ? esc(fmtDayShort.format(dayDate(p.ini)) + " – " + fmtDay.format(dayDate(p.fin))) : "—"}</td><td class="n">${money(p.venta)}</td><td class="n">${int(p.pz)}</td><td class="n">${int(p.tiendas)}</td><td>${p.parcial ? '<span class="pill neutral">Abierto</span>' : "Cerrado"}</td></tr>`).join("") + "</tbody>";
   }
 
   function renderProducts() {
     const cs = visibleChains(), agg = new Map();
     cs.forEach(c => {
-      const keep = new Set(windowPeriods(c).filter(p => !p.parcial).map(p => p.periodo));
+      const keep = new Set(D.periods[c].filter(p => inR(p, R)).map(p => p.periodo));
       rowsFor(c).forEach(r => {
         if (!keep.has(r.periodo) || r.venta == null) return;
-        const a = agg.get(r.producto) || { producto: r.producto, categoria: r.categoria, total: 0, by: {} };
-        a.total += r.venta; a.by[c] = (a.by[c] || 0) + r.venta; agg.set(r.producto, a);
+        const a = agg.get(r.producto) || { producto: r.producto, categoria: r.categoria, total: 0, pz: 0, by: {} };
+        a.total += r.venta; a.pz += r.pz || 0; a.by[c] = (a.by[c] || 0) + r.venta; agg.set(r.producto, a);
       });
     });
     const list = [...agg.values()].filter(a => a.total > 0).sort((a, b) => b.total - a.total);
     $("prodLegend").innerHTML = cs.length > 1 ? cs.map(c => `<span><i class="sw" style="background:${color(c)}"></i>${esc(c)}</span>`).join("") : "";
-    if (!list.length) { $("prodBars").innerHTML = `<div class="empty">Sin venta cerrada para este filtro.</div>`; $("prodMore").hidden = true; return; }
-    const LIMIT = 10, shown = showAllProd ? list : list.slice(0, LIMIT), max = list[0].total;
-    $("prodBars").innerHTML = shown.map(a => `
-      <div class="brow">
-        <div class="bn">${esc(a.producto)}<small>${esc(a.categoria)}</small></div>
-        <div class="track" style="width:${Math.max(1, (a.total / max) * 100).toFixed(2)}%">
-          ${cs.filter(c => a.by[c]).map(c => `<span class="seg" style="flex:${a.by[c]} 1 0;background:${color(c)}" data-tip="${esc(JSON.stringify([a.producto, c, a.by[c], a.by[c] / a.total]))}"></span>`).join("")}
-        </div>
-        <div class="bv num">${moneyC(a.total)}</div>
+    if (!list.length) { $("prodList").innerHTML = `<div class="empty">Sin venta para estas fechas y filtros.</div>`; $("prodMore").hidden = true; return; }
+    const LIMIT = 8, shown = showAllProd ? list : list.slice(0, LIMIT), max = list[0].total;
+    $("prodList").innerHTML = shown.map((a, i) => `
+      <div class="ri">
+        <span class="n">${i + 1}</span>
+        <span class="name" title="${esc(a.producto)}">${esc(a.producto)}<small>${esc(a.categoria)}</small></span>
+        <span class="val">${fmtMoney2.format(a.total)}</span>
+        <span class="track"><span class="fill" style="width:${Math.max(1, (a.total / max) * 100).toFixed(2)}%">${cs.filter(c => a.by[c]).map(c => `<span class="seg" style="flex:${a.by[c]} 1 0;background:${color(c)}" data-tip="${esc(JSON.stringify([a.producto, c, a.by[c], a.by[c] / a.total]))}"></span>`).join("")}</span></span>
+        <span class="sub">${int(a.pz)} pz</span>
       </div>`).join("");
     const more = $("prodMore");
     more.hidden = list.length <= LIMIT;
-    more.textContent = showAllProd ? "Ver solo los 10 principales" : `Ver los ${list.length} productos`;
+    more.textContent = showAllProd ? "Ver solo los 8 principales" : `Ver los ${list.length} productos`;
   }
 
   function renderShare() {
-    const cs = D.chains, tot = {};
-    let sum = 0;
-    cs.forEach(c => {
-      const v = seriesFor(c).filter(p => !p.parcial).reduce((a, p) => a + (p.venta || 0), 0);
-      tot[c] = v; sum += v;
-    });
-    const act = cs.filter(c => tot[c] > 0);
-    if (!sum) { $("shareBar").innerHTML = ""; $("shareList").innerHTML = `<div class="empty">Sin venta para este filtro.</div>`; return; }
+    const tot = {}; let sum = 0;
+    D.chains.forEach(c => { const v = seriesFor(c).reduce((a, p) => a + (p.venta || 0), 0); tot[c] = v; sum += v; });
+    const act = D.chains.filter(c => tot[c] > 0);
+    if (!sum) { $("shareBar").innerHTML = ""; $("shareList").innerHTML = `<div class="empty">Sin venta para estas fechas.</div>`; return; }
     $("shareBar").innerHTML = act.map(c => `<span class="seg" style="flex:${tot[c]} 1 0;background:${color(c)};opacity:${F.chain === "all" || F.chain === c ? 1 : .3}" data-tip="${esc(JSON.stringify(["Participación", c, tot[c], tot[c] / sum]))}"></span>`).join("");
     $("shareList").innerHTML = act.sort((a, b) => tot[b] - tot[a]).map(c => `
-      <div class="r"><span class="sw" style="background:${color(c)}"></span><span>${esc(c)}</span><span class="num">${moneyC(tot[c])}</span><span class="num pct">${fmtPct.format(tot[c] / sum)}</span></div>`).join("");
+      <div class="r"><span class="sw" style="background:${color(c)}"></span><span>${esc(c)}</span><span class="num">${money(tot[c])}</span><span class="num pct">${fmtPct.format(tot[c] / sum)}</span></div>`).join("");
+  }
+
+  function renderRegion() {
+    const { list, byWindow } = storeAgg();
+    const st = new Map(); let total = 0, none = 0, noneStores = 0;
+    list.forEach(s => {
+      total += s.venta;
+      if (!s.estado) { none += s.venta; noneStores++; return; }
+      const a = st.get(s.estado) || { venta: 0, pz: 0, tiendas: 0 };
+      a.venta += s.venta; a.pz += s.pz; a.tiendas++; st.set(s.estado, a);
+    });
+    const names = {}; (window.MX_MAP ? MX_MAP.locations : []).forEach(l => names[l.id] = l.name);
+    const max = Math.max(0, ...[...st.values()].map(a => a.venta));
+    const level = v => !v ? 0 : Math.max(1, Math.ceil(Math.sqrt(v / max) * 5)); // raíz para que los estados chicos también se distingan
+    $("regTotal").innerHTML = total ? `<b>México</b><span><b class="num">${fmtMoney2.format(total)}</b> <span class="muted">· ${int(list.length)} tiendas</span></span>` : "";
+    if (window.MX_MAP) {
+      $("map").innerHTML = `<svg viewBox="${MX_MAP.viewBox}" role="img" aria-label="Mapa de ventas por estado">${MX_MAP.locations.map(l => {
+        const a = st.get(l.id);
+        return `<path d="${l.path}" fill="var(--map-${level(a && a.venta)})" data-st="${l.id}"/>`;
+      }).join("")}</svg>`;
+      $("mapLegend").innerHTML = max ? `<span>Menos</span><span class="steps">${[1, 2, 3, 4, 5].map(i => `<i style="background:var(--map-${i})"></i>`).join("")}</span><span>Más · máx. ${esc(moneyC(max))}</span><span class="steps" style="margin-left:8px"><i style="background:var(--map-0);outline:1px solid var(--line)"></i></span><span>Sin datos</span>` : "";
+      $("map").querySelectorAll("path").forEach(p => {
+        const id = p.dataset.st, a = st.get(id);
+        const show = ev => showTip(ev, `<b>${esc(names[id])}</b>` + (a
+          ? `<div class="tr"><span>Venta</span><span>${money(a.venta)}</span></div><div class="tr"><span>Piezas</span><span>${int(a.pz)}</span></div><div class="tr"><span>Tiendas</span><span>${int(a.tiendas)}</span></div><div class="tr"><span>Participación</span><span>${fmtPct.format(a.venta / total)}</span></div>`
+          : `<div>Sin venta registrada</div>`));
+        p.addEventListener("pointermove", show);
+        p.addEventListener("pointerleave", hideTip);
+      });
+    }
+    const ranked = [...st.entries()].sort((a, b) => b[1].venta - a[1].venta);
+    $("regList").innerHTML = !total ? `<div class="empty">Sin venta por tienda para estas fechas y filtros.</div>` :
+      ranked.slice(0, 8).map(([id, a], i) => `
+        <div class="ri">
+          <span class="n">${i + 1}</span>
+          <span class="name">${esc(names[id] || id)}</span>
+          <span class="val">${fmtMoney2.format(a.venta)}</span>
+          <span class="track"><span class="fill" style="width:${Math.max(1, (a.venta / ranked[0][1].venta) * 100).toFixed(2)}%;background:var(--accent);border-radius:999px"></span></span>
+          <span class="sub">${int(a.tiendas)} tiendas · ${fmtPct.format(a.venta / total)}</span>
+        </div>`).join("") +
+      (none ? `<div class="ri other"><span class="n"></span><span class="name">Sin estado identificado</span><span class="val">${fmtMoney2.format(none)}</span><span class="track"></span><span class="sub">${int(noneStores)} tiendas · ${fmtPct.format(none / total)}</span></div>` : "");
+    // Coverage note, built from what each chain actually reports.
+    const cs = visibleChains(), parts = [];
+    cs.filter(c => D.tskuChains.has(c)).forEach(c => {
+      const ds = D.tsku.filter(x => x.cadena === c && x.ini != null);
+      if (!ds.length) return;
+      const a = Math.min(...ds.map(x => x.ini)), b = Math.max(...ds.map(x => x.fin));
+      const all = D.tiendas.filter(t => t.cadena === c).length, withState = D.tiendas.filter(t => t.cadena === c && t.estado).length;
+      parts.push(`${c}: detalle por tienda del ${fmtDayShort.format(dayDate(a))} al ${fmtDay.format(dayDate(b))}${!withState ? ", sin estado en su catálogo" : withState < all ? ` (${all - withState} tiendas sin estado)` : ""}`);
+    });
+    byWindow.forEach(c => parts.push(`${c}: acumulado de su ventana, solo con «Todo» y sin filtro de producto`));
+    cs.filter(c => !D.tskuChains.has(c) && !byWindow.includes(c)).forEach(c => parts.push(`${c}: no entra con estas fechas o filtros porque no trae detalle por tienda con fecha`));
+    $("regNote").textContent = parts.length ? "Cobertura · " + parts.join(" · ") + "." : "";
   }
 
   function renderStores() {
-    const base = D.tiendas.filter(t => F.chain === "all" || t.cadena === F.chain);
-    const alerts = base.filter(t => t.sinVenta);
+    const { list } = storeAgg();
+    const alerts = D.tiendas.filter(t => t.sinVenta && (F.chain === "all" || t.cadena === F.chain));
     $("alertCount").textContent = alerts.length;
     $("alertCount").className = "pill " + (alerts.length ? "warn" : "good");
     $("tabTop").setAttribute("aria-selected", tab === "top");
     $("tabAlert").setAttribute("aria-selected", tab === "alert");
-    const rows = tab === "top" ? base.filter(t => t.venta != null).sort((a, b) => b.venta - a.venta).slice(0, 15) : alerts.sort((a, b) => (b.inv || 0) - (a.inv || 0));
+    $("storeNote").textContent = tab === "top"
+      ? "Venta por tienda en las fechas elegidas. Inventario y SKUs son del último corte."
+      : "Tiendas con inventario y sin venta en la ventana de la cadena (posible producto fuera de anaquel).";
     const head = `<thead><tr><th>Cadena</th><th>Tienda</th><th>Estado / zona</th><th>Formato</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Inventario</th><th class="n">SKUs con venta</th></tr></thead>`;
+    const rows = tab === "top"
+      ? list.sort((a, b) => b.venta - a.venta).slice(0, 15)
+      : alerts.map(t => ({ ...t, zona: [t.ciudad, t.zona].filter(Boolean).join(", ") })).sort((a, b) => (b.inv || 0) - (a.inv || 0));
     if (!rows.length) {
-      $("storeTable").innerHTML = head + `<tbody><tr><td colspan="8" class="muted" style="white-space:normal">${tab === "alert" ? "Todas las tiendas con inventario registran venta en la ventana." : "Esta cadena no reporta detalle por tienda."}</td></tr></tbody>`;
+      $("storeTable").innerHTML = head + `<tbody><tr><td colspan="8" class="muted" style="white-space:normal">${tab === "alert" ? "Todas las tiendas con inventario registran venta." : "Sin venta por tienda para estas fechas y filtros."}</td></tr></tbody>`;
       return;
     }
     $("storeTable").innerHTML = head + "<tbody>" + rows.map(t => `<tr>
       <td><span class="sw" style="background:${color(t.cadena)};margin-right:8px"></span>${esc(t.cadena)}</td>
       <td>${esc(t.tienda)}${t.no ? ` <span class="muted num">#${esc(t.no)}</span>` : ""}</td>
-      <td>${esc([t.ciudad, t.zona].filter(Boolean).join(", ")) || "—"}</td><td>${esc(t.formato) || "—"}</td>
+      <td>${esc(t.zona) || "—"}</td><td>${esc(t.formato) || "—"}</td>
       <td class="n">${money(t.venta)}</td><td class="n">${int(t.pz)}</td><td class="n">${int(t.inv)}</td><td class="n">${int(t.skus)}</td></tr>`).join("") + "</tbody>";
   }
 
   function renderAll() {
     if (!D) return;
-    renderFilters(); renderKpis(); renderMultiples(); renderProducts(); renderShare(); renderStores();
+    R = computeRange();
+    renderDateBar(); renderFilters(); renderKpis(); renderMultiples(); renderProducts(); renderShare(); renderRegion(); renderStores();
     $("corte").textContent = D.leeme.Corte ? "Corte de datos: " + D.leeme.Corte : "";
   }
 
   function renderEmpty(msg) {
-    $("kpis").innerHTML = ["Venta sell-out", "Piezas vendidas", "Precio promedio por pieza", "Tiendas con inventario y sin venta"].map(l => `<div class="kpi"><span class="lab">${l}</span><span class="val">—</span><span class="sub">&nbsp;</span></div>`).join("");
-    $("multiples").innerHTML = `<div class="empty">${esc(msg)}</div>`;
-    $("prodBars").innerHTML = `<div class="empty">${esc(msg)}</div>`;
-    $("shareBar").innerHTML = ""; $("shareList").innerHTML = ""; $("prodLegend").innerHTML = "";
-    $("storeTable").innerHTML = ""; $("trendTable").innerHTML = "";
+    $("kpis").innerHTML = ["Ventas", "Piezas", "Precio promedio", "Inventario sin venta"].map(l => `<div class="kpi"><span class="lab">${l}</span><span class="val">—</span><span class="sub">&nbsp;</span></div>`).join("");
+    ["multiples", "prodList", "regList"].forEach(id => $(id).innerHTML = `<div class="empty">${esc(msg)}</div>`);
+    ["shareBar", "shareList", "prodLegend", "storeTable", "trendTable", "map", "mapLegend", "regTotal"].forEach(id => $(id).innerHTML = "");
+    $("regNote").textContent = ""; $("storeNote").textContent = "";
   }
 
   // ---------- tooltip ----------
@@ -639,10 +864,18 @@ body.locked{overflow:hidden}
   });
 
   // ---------- events ----------
-  $("fChain").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; F.chain = b.dataset.c; saveF(); renderAll(); });
-  $("fCat").addEventListener("change", e => { F.cat = e.target.value; F.prod = "all"; saveF(); renderAll(); });
-  $("fProd").addEventListener("change", e => { F.prod = e.target.value; saveF(); renderAll(); });
-  $("fWin").addEventListener("change", e => { F.win = e.target.value; saveF(); renderAll(); });
+  const rerender = () => { save(); renderAll(); };
+  $("presets").addEventListener("click", e => { const b = e.target.closest("[data-p]"); if (!b) return; T.preset = b.dataset.p; rerender(); });
+  $("fYear").addEventListener("change", e => { T.preset = "ym"; T.year = e.target.value; T.month = $("fMonth").value; rerender(); });
+  $("fMonth").addEventListener("change", e => { T.preset = "ym"; T.month = e.target.value; T.year = $("fYear").value; rerender(); });
+  $("btnApply").addEventListener("click", () => {
+    if (!$("dFrom").value || !$("dTo").value) { banner("Elige las dos fechas.", " Indica la fecha inicial y la final, y presiona Aplicar.", true); return; }
+    banner(null);
+    T.preset = "custom"; T.from = $("dFrom").value; T.to = $("dTo").value; rerender();
+  });
+  $("fChain").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; F.chain = b.dataset.c; rerender(); });
+  $("fCat").addEventListener("change", e => { F.cat = e.target.value; F.prod = "all"; rerender(); });
+  $("fProd").addEventListener("change", e => { F.prod = e.target.value; rerender(); });
   $("prodMore").addEventListener("click", () => { showAllProd = !showAllProd; renderProducts(); });
   $("tabTop").addEventListener("click", () => { tab = "top"; renderStores(); });
   $("tabAlert").addEventListener("click", () => { tab = "alert"; renderStores(); });
@@ -661,7 +894,6 @@ body.locked{overflow:hidden}
     b.innerHTML = `<strong>${esc(title)}</strong>${esc(body || "")}`;
     b.hidden = false;
   }
-
   let loadedAt = null;
   function describeLoaded() {
     setStatus("ok", "Hoja de Google · Sell-out", [user && user.email, loadedAt && "Actualizado " + fmtDate.format(new Date(loadedAt))].filter(Boolean).join(" · "));
@@ -674,21 +906,13 @@ body.locked{overflow:hidden}
   function showGate(msg) {
     $("gate").hidden = false;
     document.body.classList.add("locked");
-    const m = $("gateMsg");
-    m.hidden = !msg;
-    m.textContent = msg || "";
+    $("gateMsg").hidden = !msg;
+    $("gateMsg").textContent = msg || "";
   }
-  function hideGate() {
-    $("gate").hidden = true;
-    document.body.classList.remove("locked");
-  }
+  function hideGate() { $("gate").hidden = true; document.body.classList.remove("locked"); }
 
   function initAuth(tries = 0) {
-    if (!CLIENT_ID) {
-      $("btnLogin").disabled = true;
-      showGate("Falta configurar el acceso con Google: escribe el Client ID en CLIENT_ID dentro de index.html.");
-      return;
-    }
+    if (!CLIENT_ID) { showGate("Falta configurar el acceso con Google: escribe el Client ID en CLIENT_ID dentro de index.html."); return; }
     if (!(window.google && google.accounts && google.accounts.oauth2)) {
       if (tries > 40) { showGate("No se pudo cargar el inicio de sesión de Google. Revisa tu conexión y recarga la página."); return; }
       setTimeout(() => initAuth(tries + 1), 250);
@@ -703,41 +927,31 @@ body.locked{overflow:hidden}
     $("btnLogin").disabled = false;
     showGate();
   }
-
   function onToken(resp) {
     if (!resp || resp.error) { showGate("Google no autorizó el acceso. Intenta de nuevo."); return; }
-    if (!google.accounts.oauth2.hasGrantedAllScopes(resp, SHEETS_SCOPE)) {
-      showGate("Para ver el tablero, permite que lea tus hojas de cálculo de Google cuando te lo pida.");
-      return;
-    }
+    if (!google.accounts.oauth2.hasGrantedAllScopes(resp, SHEETS_SCOPE)) { showGate("Para ver el tablero, permite que lea tus hojas de cálculo de Google cuando te lo pida."); return; }
     token = resp.access_token;
     tokenExp = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
     afterLogin();
   }
-
   async function afterLogin() {
     user = await api("https://www.googleapis.com/oauth2/v3/userinfo").catch(() => null);
     try { if (user && user.email) localStorage.setItem("radar-hint", user.email); } catch {}
     hideGate();
     loadSheet();
   }
-
   function login() {
     if (!tokenClient) return;
     let hint = "";
     try { hint = localStorage.getItem("radar-hint") || ""; } catch {}
     tokenClient.requestAccessToken(hint ? { hint } : {});
   }
-
   function logout() {
     if (token && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(token, () => {});
     token = null; tokenExp = 0; user = null; D = null; loadedAt = null;
     try { localStorage.removeItem("radar-hint"); } catch {}
-    banner(null);
-    renderEmpty("Inicia sesión para ver el tablero.");
-    showGate();
+    banner(null); renderEmpty("Inicia sesión para ver el tablero."); showGate();
   }
-
   async function api(url) {
     const r = await fetch(url, { headers: { Authorization: "Bearer " + token } });
     if (r.status === 401) throw { code: "expired" };
@@ -746,32 +960,24 @@ body.locked{overflow:hidden}
     if (!r.ok) throw { code: "http", status: r.status };
     return r.json();
   }
-
   // One tab of the sheet as row objects keyed by the header row; null when the tab does not exist.
   async function fetchSheet(name) {
     try {
-      const j = await api(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`);
-      const v = j.values || [];
-      const head = (v[0] || []).map(x => String(x).trim());
-      return v.slice(1).map(a => {
-        const o = {};
-        head.forEach((k, i) => { o[k] = a[i] === undefined || a[i] === "" ? null : a[i]; });
-        return o;
-      });
+      const j = await api(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=SERIAL_NUMBER`);
+      const v = j.values || [], head = (v[0] || []).map(x => String(x).trim());
+      return v.slice(1).map(a => { const o = {}; head.forEach((k, i) => { o[k] = a[i] === undefined || a[i] === "" ? null : a[i]; }); return o; });
     } catch (e) {
       if (e.code === "http" && e.status === 400) return null;
       throw e;
     }
   }
-
   function handleErr(e) {
     const code = (e && e.code) || "network";
     if (code === "expired") { token = null; showGate("Tu sesión expiró. Vuelve a iniciar sesión."); return; }
     if (code === "forbidden" || code === "not_found") {
       D = null; loadedAt = null;
       renderEmpty("Inicia sesión con una cuenta que tenga acceso a la hoja.");
-      const who = user && user.email ? `La cuenta ${user.email}` : "Esta cuenta";
-      showGate(`${who} no tiene acceso a la hoja de sell-out. Pide al dueño de la hoja que te la comparta, o entra con otra cuenta.`);
+      showGate(`${user && user.email ? "La cuenta " + user.email : "Esta cuenta"} no tiene acceso a la hoja de sell-out. Pide al dueño de la hoja que te la comparta, o entra con otra cuenta.`);
       return;
     }
     const map = {
@@ -794,17 +1000,16 @@ body.locked{overflow:hidden}
     busy = true;
     setStatus("busy", "Leyendo la hoja de Google…", "Trayendo la versión más reciente");
     try {
-      const [serie, tiendas, leeme] = await Promise.all([
+      const [serie, tiendas, leeme, tsku] = await Promise.all([
         fetchSheet("fact_serie"),
         fetchSheet("dim_tiendas").catch(() => null),
-        fetchSheet("Leeme").catch(() => null)
+        fetchSheet("Leeme").catch(() => null),
+        fetchSheet("fact_tienda_sku").catch(() => null)
       ]);
       if (!serie || !serie.length || !("cadena" in serie[0])) throw { code: "bad_file", message: "No se encontró la pestaña fact_serie con la columna cadena." };
-      D = parseWorkbook({ __rows: { fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [] } });
+      D = parseSheets({ fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [], fact_tienda_sku: tsku || [] });
       loadedAt = Date.now();
-      banner(null);
-      renderAll();
-      describeLoaded();
+      banner(null); renderAll(); describeLoaded();
     } catch (e) {
       handleErr(e && e.code ? e : { code: "network" });
     } finally {
@@ -815,8 +1020,6 @@ body.locked{overflow:hidden}
   $("btnLogin").addEventListener("click", login);
   $("btnLogout").addEventListener("click", logout);
   $("btnRefresh").addEventListener("click", loadSheet);
-
-  // Re-read every 10 minutes while the page is visible; catch up when the tab comes back.
   setInterval(() => { if (token && document.visibilityState === "visible") loadSheet(); }, POLL_MS);
   document.addEventListener("visibilitychange", () => {
     if (token && document.visibilityState === "visible" && (!loadedAt || Date.now() - loadedAt > POLL_MS)) loadSheet();

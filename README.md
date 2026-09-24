@@ -31,5 +31,7 @@ El tablero queda en `https://juan122305.github.io/VentasKAM/`.
 
 ## Cómo se actualiza
 - Lee la hoja cada vez que alguien inicia sesión y la vuelve a leer cada 10 minutos mientras está abierta (también con **Actualizar**).
-- Pestañas que espera: `fact_serie` (obligatoria), `dim_tiendas` y `Leeme`.
+- Pestañas que espera: `fact_serie` (obligatoria), `dim_tiendas`, `fact_tienda_sku` y `Leeme`.
+- Fechas: accesos rápidos (7 días, 30 días, este mes, este año, todo), mes por año y rango libre. Un periodo entra si alguno de sus días cae en el rango. Waldo's no trae fechas, así que solo aparece con «Todo».
+- Mapa de ventas por estado: usa el detalle por tienda con fecha (`fact_tienda_sku`) y el estado del catálogo de tiendas. Mapa de [svg-maps](https://github.com/VictorCazanave/svg-maps) (CC BY 4.0).
 - Para cargar datos nuevos, actualiza esa misma hoja. Si cambias de hoja, cambia `SHEET_ID` en `docs/index.html`.
