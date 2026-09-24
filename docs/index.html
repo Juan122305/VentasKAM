@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Radar Sell-out Autoservicio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#f5f6f1; --surface:#ffffff; --surface-2:#eef1ea; --ink:#16201a; --ink-2:#4d5a51; --muted:#6c776f;
+  --line:#e1e6dc; --grid:#edf0e9; --accent:#2f6b3f; --accent-ink:#ffffff; --accent-soft:#e3efe4;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --good:#0ca30c; --good-ink:#0a6e0a; --critical:#d03b3b; --critical-ink:#b02f2f; --warning:#fab219; --warning-ink:#8a5a00;
+  --shadow:0 1px 2px rgba(22,32,26,.05),0 4px 16px rgba(22,32,26,.05);
+  --display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111512; --surface:#191e1a; --surface-2:#222823; --ink:#eef2ec; --ink-2:#c1cac3; --muted:#9aa59d;
+    --line:#2c332e; --grid:#252b26; --accent:#74c387; --accent-ink:#0f1a12; --accent-soft:#213326;
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+    --good-ink:#5fd35f; --critical-ink:#ef7b7b; --warning-ink:#fab219;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111512; --surface:#191e1a; --surface-2:#222823; --ink:#eef2ec; --ink-2:#c1cac3; --muted:#9aa59d;
+  --line:#2c332e; --grid:#252b26; --accent:#74c387; --accent-ink:#0f1a12; --accent-soft:#213326;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300; --s7:#9085e9; --s8:#e66767;
+  --good-ink:#5fd35f; --critical-ink:#ef7b7b; --warning-ink:#fab219;
+  --shadow:none;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.45}
+.wrap{max-width:1240px;margin:0 auto;padding-inline:clamp(16px,3vw,32px);padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h1{font-size:clamp(24px,3.4vw,34px);font-weight:700;line-height:1.1}
+h2{font-size:18px;font-weight:600}
+p{margin:0}
+.muted{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+button,select,.btn{font:inherit}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
+.brand{display:flex;flex-direction:column;gap:6px}
+.source{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;max-width:100%}
+.source .txt{display:flex;flex-direction:column;min-width:0}
+.source .txt p{font-size:13px;overflow-wrap:anywhere}
+#srcTitle{font-weight:600}
+.src-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none}
+.src-dot.ok{background:var(--good)}
+.src-dot.busy{background:var(--warning);animation:pulse 1.2s ease-in-out infinite}
+.src-dot.err{background:var(--critical)}
+@keyframes pulse{50%{opacity:.35}}
+@media (prefers-reduced-motion: reduce){.src-dot.busy{animation:none}}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+
+.banner{border:1px solid var(--line);border-left:4px solid var(--critical);background:var(--surface);border-radius:8px;padding:10px 14px;font-size:13px}
+.banner.info{border-left-color:var(--accent)}
+.banner strong{display:block;margin-bottom:2px}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 20px}
+.fgroup{display:flex;flex-direction:column;gap:6px;min-width:0}
+.fgroup > span{font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;padding:5px 12px;font-size:13px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
+.sw{width:10px;height:10px;border-radius:3px;flex:none;display:inline-block}
+select{appearance:none;border:1px solid var(--line);background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236c776f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat right 10px center;color:var(--ink);border-radius:8px;padding:6px 30px 6px 10px;font-size:13px;max-width:100%}
+
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.kpi .lab{font-size:12px;color:var(--muted);font-weight:500}
+.kpi .val{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.6vw,30px);font-variant-numeric:tabular-nums;line-height:1.1}
+.kpi .sub{font-size:12px;color:var(--ink-2)}
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;border-radius:999px;padding:2px 8px;width:max-content}
+.pill.good{color:var(--good-ink);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.pill.bad{color:var(--critical-ink);background:color-mix(in srgb,var(--critical) 14%,transparent)}
+.pill.warn{color:var(--warning-ink);background:color-mix(in srgb,var(--warning) 20%,transparent)}
+.pill.neutral{color:var(--ink-2);background:var(--surface-2)}
+
+/* panels */
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow);min-width:0}
+.panel-h{display:flex;flex-direction:column;gap:4px}
+.panel-h p{font-size:13px;max-width:70ch}
+.multiples{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.multiples.single{grid-template-columns:1fr}
+.mcard{border:1px solid var(--line);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:8px;position:relative;min-width:0}
+.mhead{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.mname{display:flex;align-items:center;gap:8px}
+.mname h3{font-size:16px;font-weight:600}
+.mmeta{font-size:12px;color:var(--muted)}
+.mlast{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.mlast .v{font-family:var(--display);font-size:20px;font-weight:600;font-variant-numeric:tabular-nums;line-height:1.1}
+.mlast .l{font-size:12px;color:var(--muted)}
+.chart{width:100%;height:190px;position:relative}
+.chart svg{display:block;width:100%;height:100%;overflow:visible}
+.axis text{fill:var(--muted);font-family:var(--mono);font-size:10.5px}
+.grid line{stroke:var(--grid);stroke-width:1}
+.base{stroke:var(--line);stroke-width:1}
+.empty{display:flex;align-items:center;justify-content:center;min-height:120px;color:var(--muted);font-size:13px;text-align:center;border:1px dashed var(--line);border-radius:10px;padding:16px}
+
+.grid2{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:18px;align-items:start}
+
+/* product bars */
+.bars{display:flex;flex-direction:column;gap:9px}
+.brow{display:grid;grid-template-columns:minmax(0,210px) minmax(0,1fr) 76px;align-items:center;gap:10px}
+.brow .bn{font-size:13px;overflow-wrap:anywhere;line-height:1.25}
+.brow .bn small{display:block;color:var(--muted);font-size:11px}
+.track{display:flex;gap:2px;height:14px;align-items:stretch}
+.seg{height:100%;min-width:2px;cursor:default}
+.seg:first-child{border-radius:0}
+.seg:last-child{border-radius:0 4px 4px 0}
+.brow .bv{font-size:12px;text-align:right}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--ink-2)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.linkbtn{background:none;border:0;color:var(--accent);font-weight:600;font-size:13px;cursor:pointer;padding:0;align-self:flex-start}
+
+/* share */
+.sharebar{display:flex;gap:2px;height:22px}
+.sharebar .seg:first-child{border-radius:4px 0 0 4px}
+.sharebar .seg:last-child{border-radius:0 4px 4px 0}
+.sharelist{display:flex;flex-direction:column}
+.sharelist .r{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:13px}
+.sharelist .r:first-child{border-top:0}
+.sharelist .pct{color:var(--muted);width:48px;text-align:right}
+
+/* tables */
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+.tab[aria-selected="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);font-weight:600}
+.tscroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:8px 12px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);background:var(--surface-2);position:sticky;top:0}
+td.n,th.n{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:0}
+details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
+details[open] summary{margin-bottom:10px}
+details .tscroll{max-height:360px;overflow:auto}
+
+footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;max-width:90ch}
+
+.tip{position:fixed;z-index:10;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:8px;padding:8px 10px;font-size:12px;line-height:1.4;max-width:240px;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+.tip b{font-weight:600}
+.tip .tr{display:flex;justify-content:space-between;gap:14px}
+.tip .tr span:last-child{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+@media (max-width:900px){
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .grid2{grid-template-columns:1fr}
+  .multiples{grid-template-columns:1fr}
+}
+@media (max-width:520px){
+  .brow{grid-template-columns:minmax(0,1fr) 70px}
+  .brow .bn{grid-column:1 / -1}
+  .brow .track{grid-column:1}
+  .source{width:100%}
+}
+
+/* login */
+body.locked{overflow:hidden}
+.gate{position:fixed;inset:0;z-index:20;background:var(--bg);display:grid;place-items:center;padding:24px 16px;overflow-y:auto}
+.gate-card{width:100%;max-width:420px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:32px 28px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow)}
+.gate-card h1{font-size:28px}
+.gate-card > p{font-size:14px;color:var(--ink-2)}
+.gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:6px;padding:11px 16px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.gbtn:hover:not(:disabled){background:var(--surface-2)}
+.gbtn:disabled{opacity:.5;cursor:default}
+.gbtn svg{width:18px;height:18px;flex:none}
+.gate-msg{border-left:3px solid var(--critical);background:var(--surface-2);border-radius:6px;padding:9px 12px;font-size:13px;color:var(--ink)}
+.gate-foot{font-size:12px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body class="locked">
+
+<div class="gate" id="gate" role="dialog" aria-modal="true" aria-labelledby="gateTitle">
+  <div class="gate-card">
+    <p class="eyebrow">Fresh Harvest · Cuentas clave</p>
+    <h1 id="gateTitle">Radar Sell&#8209;out Autoservicio</h1>
+    <p>Inicia sesión con la cuenta de Google que tiene acceso a la hoja de sell-out.</p>
+    <button class="gbtn" id="btnLogin" type="button" disabled>
+      <svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+      Iniciar sesión con Google
+    </button>
+    <p class="gate-msg" id="gateMsg" role="alert" hidden></p>
+    <p class="gate-foot muted">Solo las cuentas con permiso en la hoja pueden ver los datos. El acceso se administra desde el botón Compartir de Google Sheets.</p>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <p class="eyebrow">Fresh Harvest · Cuentas clave</p>
+      <h1>Radar Sell-out Autoservicio</h1>
+    </div>
+    <div class="source" id="source" aria-live="polite">
+      <span class="src-dot busy" id="srcDot"></span>
+      <div class="txt">
+        <p id="srcTitle">Hoja de Google · Sell-out</p>
+        <p id="srcMeta" class="muted">Inicia sesión para cargar los datos</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="btnRefresh" type="button">Actualizar</button>
+        <button class="btn ghost" id="btnLogout" type="button">Cerrar sesión</button>
+      </div>
+    </div>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <section class="filters" aria-label="Filtros">
+    <div class="fgroup"><span>Cadena</span><div class="chips" id="fChain"></div></div>
+    <div class="fgroup"><label for="fCat"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Categoría</span></label><select id="fCat"></select></div>
+    <div class="fgroup"><label for="fProd"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Producto</span></label><select id="fProd"></select></div>
+    <div class="fgroup"><label for="fWin"><span class="muted" style="font-size:11px;font-weight:600;letter-spacing:.07em;text-transform:uppercase">Periodos por cadena</span></label>
+      <select id="fWin">
+        <option value="all">Todo el histórico</option>
+        <option value="13">Últimos 13 periodos</option>
+        <option value="4">Últimos 4 periodos</option>
+        <option value="1">Último periodo cerrado</option>
+      </select>
+    </div>
+  </section>
+
+  <section class="kpis" id="kpis" aria-label="Indicadores"></section>
+
+  <section class="panel">
+    <div class="panel-h">
+      <h2>Tendencia de venta por cadena</h2>
+      <p class="muted">Venta en pesos por periodo. Walmart, Waldo's y Al Súper reportan por semana; La Comer por mes. El punto hueco marca un periodo que aún no cierra.</p>
+    </div>
+    <div class="multiples" id="multiples"></div>
+    <details id="trendDetails">
+      <summary>Ver datos por periodo en tabla</summary>
+      <div class="tscroll"><table id="trendTable"></table></div>
+    </details>
+  </section>
+
+  <div class="grid2">
+    <section class="panel">
+      <div class="panel-h">
+        <h2>Venta por producto</h2>
+        <p class="muted">Producto homologado, periodos cerrados de la ventana elegida, separado por cadena.</p>
+      </div>
+      <div class="legend" id="prodLegend"></div>
+      <div class="bars" id="prodBars"></div>
+      <button class="linkbtn" id="prodMore" type="button" hidden></button>
+    </section>
+    <section class="panel">
+      <div class="panel-h">
+        <h2>Participación por cadena</h2>
+        <p class="muted">Peso de cada cadena en la venta de la ventana elegida.</p>
+      </div>
+      <div class="sharebar" id="shareBar"></div>
+      <div class="sharelist" id="shareList"></div>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-h">
+      <h2>Tiendas</h2>
+      <p class="muted" id="storeNote">Acumulado de la ventana que reporta cada cadena e inventario del último corte. Waldo's no reporta a nivel tienda en su serie.</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tabTop" aria-selected="true" type="button">Mayor venta</button>
+      <button class="tab" role="tab" id="tabAlert" aria-selected="false" type="button">Inventario sin venta <span class="pill warn" id="alertCount">0</span></button>
+    </div>
+    <div class="tscroll"><table id="storeTable"></table></div>
+  </section>
+
+  <footer id="foot">
+    <p>Los datos se leen de la hoja de Google cada vez que inicias sesión, y se revisan de nuevo cada 10 minutos mientras el tablero está abierto. Un dato vacío significa que la cadena no lo reportó (no es cero).</p>
+    <p id="corte"></p>
+  </footer>
+</div>
+<div class="tip" id="tip" hidden></div>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+(() => {
+  // Configuración del acceso con Google (ver LEEME en el README del repositorio).
+  // CLIENT_ID: el ID de cliente OAuth creado en Google Cloud Console para este sitio.
+  const CLIENT_ID = "";
+  // SHEET_ID: la parte de la URL de la hoja entre /d/ y /edit. La hoja debe estar en acceso
+  // restringido y compartida solo con las personas que pueden ver el tablero.
+  const SHEET_ID = "1FYVjV3c0HrzrSK-spsIPfzyvh3rlnfDKZ8tutDOvrYo";
+  const POLL_MS = 10 * 60 * 1000;
+  const KNOWN = ["Walmart", "Waldo's", "Al Súper", "La Comer"];
+
+  const $ = id => document.getElementById(id);
+  const fmtMoney = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 });
+  const fmtInt = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 });
+  const fmtPct = new Intl.NumberFormat("es-MX", { style: "percent", maximumFractionDigits: 1 });
+  const fmtDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" });
+  const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const money = v => v == null ? "—" : fmtMoney.format(v);
+  const moneyC = v => {
+    if (v == null) return "—";
+    const a = Math.abs(v), t = (n, u) => "$" + n.toFixed(1).replace(/\.0$/, "") + u;
+    return a >= 1e6 ? t(v / 1e6, " M") : a >= 1e3 ? t(v / 1e3, " mil") : "$" + fmtInt.format(v);
+  };
+  const int = v => v == null ? "—" : fmtInt.format(v);
+
+  // ---------- state ----------
+  const store = (() => { try { return JSON.parse(localStorage.getItem("radar-filters") || "{}"); } catch { return {}; } })();
+  const F = { chain: store.chain || "all", cat: store.cat || "all", prod: store.prod || "all", win: store.win || "all" };
+  let D = null;            // parsed data
+  let tab = "top", showAllProd = false;
+  const saveF = () => { try { localStorage.setItem("radar-filters", JSON.stringify(F)); } catch {} };
+
+  // ---------- parsing ----------
+  const num = v => { if (v == null || v === "") return null; const n = typeof v === "number" ? v : Number(String(v).replace(/[$,\s]/g, "")); return Number.isFinite(n) ? n : null; };
+  const bool = v => v === true || String(v).trim().toUpperCase() === "TRUE" || v === 1;
+  const str = v => v == null ? "" : String(v).trim();
+  const toDate = v => { if (v instanceof Date && !isNaN(v)) return v; if (!v) return null; const d = new Date(v); return isNaN(d) ? null : d; };
+
+  function sheet(wb, name) {
+    if (wb.__rows) return wb.__rows[name] || null;
+    const key = wb.SheetNames.find(n => n.trim().toLowerCase() === name);
+    return key ? XLSX.utils.sheet_to_json(wb.Sheets[key], { defval: null, raw: true }) : null;
+  }
+
+  function parseWorkbook(wb) {
+    const serieRaw = sheet(wb, "fact_serie");
+    if (!serieRaw) throw { code: "bad_file", message: "El archivo no tiene la hoja fact_serie." };
+    const serie = serieRaw.filter(r => r.cadena).map(r => {
+      const ini = toDate(r.fecha_inicio), periodo = str(r.periodo);
+      return {
+        cadena: str(r.cadena), freq: str(r.frecuencia), periodo, label: str(r.periodo_label) || periodo,
+        key: Number(periodo.replace(/\D/g, "")) || (ini ? ini.getTime() : 0),
+        parcial: bool(r.periodo_parcial), producto: str(r.producto) || str(r.sku_cadena), categoria: str(r.categoria) || "Sin categoría",
+        pz: num(r.piezas), venta: num(r.venta_pesos), inv: num(r.inventario_pz), tiendas: num(r.tiendas_con_venta)
+      };
+    });
+    const tiendas = (sheet(wb, "dim_tiendas") || []).filter(r => r.cadena).map(r => ({
+      cadena: str(r.cadena), no: str(r.tienda_no), tienda: str(r.tienda), ciudad: str(r.ciudad), zona: str(r.estado_zona),
+      formato: str(r.formato_segmento), pz: num(r.pz_ventana), venta: num(r.venta_ventana), inv: num(r.inv_actual),
+      skus: num(r.skus_con_venta), sinVenta: bool(r.inv_sin_venta), periodos: num(r.ventana_periodos)
+    }));
+    const leeme = {};
+    (sheet(wb, "leeme") || []).forEach(r => { const k = str(r.Campo || r.campo); if (k) leeme[k] = str(r["Descripción"] || r.Descripcion || r.descripcion); });
+
+    const chains = [...KNOWN.filter(c => serie.some(r => r.cadena === c)), ...[...new Set(serie.map(r => r.cadena))].filter(c => !KNOWN.includes(c)).sort()];
+    const slot = {}; chains.forEach((c, i) => slot[c] = `var(--s${Math.min(i + 1, 8)})`);
+    // ordered periods per chain
+    const periods = {};
+    chains.forEach(c => {
+      const m = new Map();
+      serie.filter(r => r.cadena === c).forEach(r => {
+        const p = m.get(r.periodo) || { periodo: r.periodo, label: r.label, key: r.key, parcial: false, freq: r.freq };
+        p.parcial = p.parcial || r.parcial; m.set(r.periodo, p);
+      });
+      periods[c] = [...m.values()].sort((a, b) => a.key - b.key);
+    });
+    return { serie, tiendas, leeme, chains, slot, periods };
+  }
+
+  // ---------- selection helpers ----------
+  const color = c => D.slot[c] || "var(--muted)";
+  const visibleChains = () => F.chain === "all" ? D.chains : D.chains.filter(c => c === F.chain);
+  const rowsFor = c => D.serie.filter(r => r.cadena === c && (F.cat === "all" || r.categoria === F.cat) && (F.prod === "all" || r.producto === F.prod));
+
+  // periods in window for a chain: last N closed periods, plus any open period after them
+  function windowPeriods(c) {
+    const ps = D.periods[c] || [];
+    if (F.win === "all") return ps;
+    const n = Number(F.win);
+    const closed = ps.filter(p => !p.parcial);
+    const keep = new Set(closed.slice(-n).map(p => p.periodo));
+    const lastKey = closed.length ? closed[closed.length - 1].key : -Infinity;
+    return ps.filter(p => keep.has(p.periodo) || (p.parcial && p.key >= lastKey));
+  }
+
+  function seriesFor(c) {
+    const rows = rowsFor(c), by = new Map();
+    rows.forEach(r => {
+      const a = by.get(r.periodo) || { venta: null, pz: null, tiendas: null, inv: null };
+      if (r.venta != null) a.venta = (a.venta || 0) + r.venta;
+      if (r.pz != null) a.pz = (a.pz || 0) + r.pz;
+      if (r.inv != null) a.inv = (a.inv || 0) + r.inv;
+      if (r.tiendas != null) a.tiendas = Math.max(a.tiendas || 0, r.tiendas);
+      by.set(r.periodo, a);
+    });
+    return windowPeriods(c).map(p => ({ ...p, ...(by.get(p.periodo) || { venta: null, pz: null, tiendas: null, inv: null }) }));
+  }
+
+  // ---------- rendering ----------
+  function renderFilters() {
+    const chips = [`<button class="chip" type="button" data-c="all" aria-pressed="${F.chain === "all"}">Todas</button>`]
+      .concat(D.chains.map(c => `<button class="chip" type="button" data-c="${esc(c)}" aria-pressed="${F.chain === c}"><span class="sw" style="background:${color(c)}"></span>${esc(c)}</button>`));
+    $("fChain").innerHTML = chips.join("");
+    const cats = [...new Set(D.serie.map(r => r.categoria))].sort();
+    if (F.cat !== "all" && !cats.includes(F.cat)) F.cat = "all";
+    $("fCat").innerHTML = `<option value="all">Todas</option>` + cats.map(c => `<option ${c === F.cat ? "selected" : ""}>${esc(c)}</option>`).join("");
+    const prods = [...new Set(D.serie.filter(r => F.cat === "all" || r.categoria === F.cat).map(r => r.producto))].sort((a, b) => a.localeCompare(b, "es"));
+    if (F.prod !== "all" && !prods.includes(F.prod)) F.prod = "all";
+    $("fProd").innerHTML = `<option value="all">Todos</option>` + prods.map(p => `<option ${p === F.prod ? "selected" : ""}>${esc(p)}</option>`).join("");
+    $("fWin").value = F.win;
+  }
+
+  function renderKpis() {
+    let venta = 0, pz = 0, any = false;
+    const perChain = {};
+    visibleChains().forEach(c => {
+      const s = seriesFor(c).filter(p => !p.parcial);
+      const v = s.reduce((a, p) => a + (p.venta || 0), 0), q = s.reduce((a, p) => a + (p.pz || 0), 0);
+      perChain[c] = v; venta += v; pz += q; if (s.some(p => p.venta != null)) any = true;
+    });
+    const alerts = D.tiendas.filter(t => t.sinVenta && (F.chain === "all" || t.cadena === F.chain)).length;
+    const nStores = D.tiendas.filter(t => (F.chain === "all" || t.cadena === F.chain) && (t.venta || 0) > 0).length;
+    const winTxt = F.win === "all" ? "Todo el histórico disponible" : F.win === "1" ? "Último periodo cerrado de cada cadena" : `Últimos ${F.win} periodos cerrados por cadena`;
+    $("kpis").innerHTML = `
+      <div class="kpi"><span class="lab">Venta sell-out</span><span class="val">${any ? moneyC(venta) : "—"}</span><span class="sub">${esc(winTxt)}</span></div>
+      <div class="kpi"><span class="lab">Piezas vendidas</span><span class="val">${any ? int(pz) : "—"}</span><span class="sub">Periodos cerrados</span></div>
+      <div class="kpi"><span class="lab">Precio promedio por pieza</span><span class="val">${pz ? money(venta / pz).replace(/\.00$/, "") : "—"}</span><span class="sub">Venta ÷ piezas</span></div>
+      <div class="kpi"><span class="lab">Tiendas con inventario y sin venta</span><span class="val">${int(alerts)}</span>
+        <span class="pill ${alerts ? "warn" : "good"}">${alerts ? "▲ Revisar anaquel" : "✓ Todo con venta"}</span></div>`;
+    void nStores;
+  }
+
+  function nice(v) { if (!(v > 0)) return 1; const e = 10 ** Math.floor(Math.log10(v)), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; }
+
+  function renderMultiples() {
+    const cs = visibleChains();
+    const box = $("multiples");
+    box.classList.toggle("single", cs.length === 1);
+    box.innerHTML = cs.map((c, i) => `
+      <article class="mcard" data-i="${i}">
+        <div class="mhead">
+          <div><div class="mname"><span class="sw" style="background:${color(c)}"></span><h3>${esc(c)}</h3></div><p class="mmeta" data-meta></p></div>
+          <div class="mlast" data-last></div>
+        </div>
+        <div class="chart" data-chart></div>
+      </article>`).join("");
+    cs.forEach((c, i) => {
+      const card = box.children[i];
+      const pts = seriesFor(c);
+      const closed = pts.filter(p => !p.parcial && p.venta != null);
+      const all = D.periods[c];
+      const freq = (all[0] && all[0].freq) || "";
+      card.querySelector("[data-meta]").textContent = `${freq ? freq[0].toUpperCase() + freq.slice(1) : ""} · ${pts.length} periodos${pts.length ? ` · ${pts[0].label} a ${pts[pts.length - 1].label}` : ""}`;
+      const last = closed[closed.length - 1], prev = closed[closed.length - 2];
+      let delta = "";
+      if (last && prev && prev.venta) {
+        const d = last.venta / prev.venta - 1;
+        delta = `<span class="pill ${d >= 0 ? "good" : "bad"}">${d >= 0 ? "▲" : "▼"} ${fmtPct.format(Math.abs(d))} vs ${esc(prev.label)}</span>`;
+      }
+      card.querySelector("[data-last]").innerHTML = last
+        ? `<span class="l">Último cerrado · ${esc(last.label)}</span><span class="v">${money(last.venta)}</span>${delta}`
+        : `<span class="l">Sin periodos cerrados con venta</span>`;
+      drawLine(card.querySelector("[data-chart]"), pts, color(c));
+    });
+    renderTrendTable();
+  }
+
+  function drawLine(el, pts, col) {
+    if (!pts.some(p => p.venta != null)) { el.innerHTML = `<div class="empty">Esta cadena no reporta venta para el filtro elegido.</div>`; return; }
+    const W = Math.max(el.clientWidth, 260), H = el.clientHeight || 190, m = { t: 10, r: 14, b: 22, l: 56 };
+    const iw = W - m.l - m.r, ih = H - m.t - m.b;
+    const max = nice(Math.max(...pts.map(p => p.venta || 0)));
+    const x = i => m.l + (pts.length === 1 ? iw / 2 : (i / (pts.length - 1)) * iw);
+    const y = v => m.t + ih - (v / max) * ih;
+    const ticks = [0, max / 2, max];
+    // segments split at nulls; closed segment vs partial tail
+    let line = "", area = "", dash = "";
+    let run = [];
+    const flush = () => {
+      if (!run.length) return;
+      line += "M" + run.map(i => `${x(i).toFixed(1)},${y(pts[i].venta).toFixed(1)}`).join("L");
+      area += `M${x(run[0]).toFixed(1)},${y(0)}L` + run.map(i => `${x(i).toFixed(1)},${y(pts[i].venta).toFixed(1)}`).join("L") + `L${x(run[run.length - 1]).toFixed(1)},${y(0)}Z`;
+      run = [];
+    };
+    pts.forEach((p, i) => {
+      if (p.venta == null) { flush(); return; }
+      if (p.parcial) {
+        const j = i - 1;
+        if (j >= 0 && pts[j].venta != null && !pts[j].parcial) dash += `M${x(j).toFixed(1)},${y(pts[j].venta).toFixed(1)}L${x(i).toFixed(1)},${y(p.venta).toFixed(1)}`;
+        flush(); return;
+      }
+      run.push(i);
+    });
+    flush();
+    const lastClosed = pts.map((p, i) => [p, i]).filter(([p]) => !p.parcial && p.venta != null).pop();
+    const partials = pts.map((p, i) => [p, i]).filter(([p]) => p.parcial && p.venta != null);
+    const xl = [0, pts.length - 1]; if (iw > 380 && pts.length > 4) xl.splice(1, 0, Math.round((pts.length - 1) / 2));
+    const uniq = [...new Set(xl)];
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Venta por periodo">
+      <g class="grid">${ticks.slice(1).map(t => `<line x1="${m.l}" x2="${W - m.r}" y1="${y(t)}" y2="${y(t)}"/>`).join("")}</g>
+      <line class="base" x1="${m.l}" x2="${W - m.r}" y1="${y(0)}" y2="${y(0)}"/>
+      <g class="axis">${ticks.map(t => `<text x="${m.l - 8}" y="${y(t) + 3.5}" text-anchor="end">${esc(moneyC(t))}</text>`).join("")}
+        ${uniq.map((i, k) => `<text x="${x(i)}" y="${H - 5}" text-anchor="${uniq.length > 1 && k === 0 ? "start" : k === uniq.length - 1 && uniq.length > 1 ? "end" : "middle"}">${esc(pts[i].label)}</text>`).join("")}</g>
+      <path d="${area}" fill="${col}" fill-opacity=".12" stroke="none"/>
+      <path d="${line}" fill="none" stroke="${col}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      <path d="${dash}" fill="none" stroke="${col}" stroke-width="2" stroke-dasharray="4 4" stroke-linecap="round"/>
+      ${lastClosed ? `<circle cx="${x(lastClosed[1])}" cy="${y(lastClosed[0].venta)}" r="4.5" fill="${col}" stroke="var(--surface)" stroke-width="2"/>` : ""}
+      ${partials.map(([p, i]) => `<circle cx="${x(i)}" cy="${y(p.venta)}" r="4" fill="var(--surface)" stroke="${col}" stroke-width="2"/>`).join("")}
+      <g data-hover style="display:none"><line y1="${m.t}" y2="${y(0)}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="2 3"/><circle r="5" fill="${col}" stroke="var(--surface)" stroke-width="2"/></g>
+      <rect x="${m.l}" y="${m.t}" width="${iw}" height="${ih}" fill="transparent" data-hit/>
+    </svg>`;
+    const svg = el.querySelector("svg"), hov = svg.querySelector("[data-hover]"), hit = svg.querySelector("[data-hit]");
+    const move = ev => {
+      const r = svg.getBoundingClientRect(), px = (ev.clientX - r.left) * (W / r.width);
+      const i = Math.max(0, Math.min(pts.length - 1, Math.round(pts.length === 1 ? 0 : ((px - m.l) / iw) * (pts.length - 1))));
+      const p = pts[i];
+      hov.style.display = ""; hov.querySelector("line").setAttribute("x1", x(i)); hov.querySelector("line").setAttribute("x2", x(i));
+      const c = hov.querySelector("circle");
+      if (p.venta == null) c.setAttribute("r", 0); else { c.setAttribute("r", 5); c.setAttribute("cx", x(i)); c.setAttribute("cy", y(p.venta)); }
+      showTip(ev, `<b>${esc(p.label)}</b>${p.parcial ? " · periodo abierto" : ""}
+        <div class="tr"><span>Venta</span><span>${money(p.venta)}</span></div>
+        <div class="tr"><span>Piezas</span><span>${int(p.pz)}</span></div>
+        <div class="tr"><span>Tiendas con venta</span><span>${int(p.tiendas)}</span></div>
+        ${p.inv != null ? `<div class="tr"><span>Inventario</span><span>${int(p.inv)} pz</span></div>` : ""}`);
+    };
+    hit.addEventListener("pointermove", move);
+    hit.addEventListener("pointerdown", move);
+    hit.addEventListener("pointerleave", () => { hov.style.display = "none"; hideTip(); });
+  }
+
+  function renderTrendTable() {
+    const rows = [];
+    visibleChains().forEach(c => seriesFor(c).slice().reverse().forEach(p => rows.push([c, p])));
+    $("trendTable").innerHTML = `<thead><tr><th>Cadena</th><th>Periodo</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Tiendas con venta</th><th>Estado</th></tr></thead><tbody>` +
+      rows.map(([c, p]) => `<tr><td><span class="sw" style="background:${color(c)};margin-right:8px"></span>${esc(c)}</td><td>${esc(p.label)}</td><td class="n">${money(p.venta)}</td><td class="n">${int(p.pz)}</td><td class="n">${int(p.tiendas)}</td><td>${p.parcial ? '<span class="pill neutral">Abierto</span>' : "Cerrado"}</td></tr>`).join("") + "</tbody>";
+  }
+
+  function renderProducts() {
+    const cs = visibleChains(), agg = new Map();
+    cs.forEach(c => {
+      const keep = new Set(windowPeriods(c).filter(p => !p.parcial).map(p => p.periodo));
+      rowsFor(c).forEach(r => {
+        if (!keep.has(r.periodo) || r.venta == null) return;
+        const a = agg.get(r.producto) || { producto: r.producto, categoria: r.categoria, total: 0, by: {} };
+        a.total += r.venta; a.by[c] = (a.by[c] || 0) + r.venta; agg.set(r.producto, a);
+      });
+    });
+    const list = [...agg.values()].filter(a => a.total > 0).sort((a, b) => b.total - a.total);
+    $("prodLegend").innerHTML = cs.length > 1 ? cs.map(c => `<span><i class="sw" style="background:${color(c)}"></i>${esc(c)}</span>`).join("") : "";
+    if (!list.length) { $("prodBars").innerHTML = `<div class="empty">Sin venta cerrada para este filtro.</div>`; $("prodMore").hidden = true; return; }
+    const LIMIT = 10, shown = showAllProd ? list : list.slice(0, LIMIT), max = list[0].total;
+    $("prodBars").innerHTML = shown.map(a => `
+      <div class="brow">
+        <div class="bn">${esc(a.producto)}<small>${esc(a.categoria)}</small></div>
+        <div class="track" style="width:${Math.max(1, (a.total / max) * 100).toFixed(2)}%">
+          ${cs.filter(c => a.by[c]).map(c => `<span class="seg" style="flex:${a.by[c]} 1 0;background:${color(c)}" data-tip="${esc(JSON.stringify([a.producto, c, a.by[c], a.by[c] / a.total]))}"></span>`).join("")}
+        </div>
+        <div class="bv num">${moneyC(a.total)}</div>
+      </div>`).join("");
+    const more = $("prodMore");
+    more.hidden = list.length <= LIMIT;
+    more.textContent = showAllProd ? "Ver solo los 10 principales" : `Ver los ${list.length} productos`;
+  }
+
+  function renderShare() {
+    const cs = D.chains, tot = {};
+    let sum = 0;
+    cs.forEach(c => {
+      const v = seriesFor(c).filter(p => !p.parcial).reduce((a, p) => a + (p.venta || 0), 0);
+      tot[c] = v; sum += v;
+    });
+    const act = cs.filter(c => tot[c] > 0);
+    if (!sum) { $("shareBar").innerHTML = ""; $("shareList").innerHTML = `<div class="empty">Sin venta para este filtro.</div>`; return; }
+    $("shareBar").innerHTML = act.map(c => `<span class="seg" style="flex:${tot[c]} 1 0;background:${color(c)};opacity:${F.chain === "all" || F.chain === c ? 1 : .3}" data-tip="${esc(JSON.stringify(["Participación", c, tot[c], tot[c] / sum]))}"></span>`).join("");
+    $("shareList").innerHTML = act.sort((a, b) => tot[b] - tot[a]).map(c => `
+      <div class="r"><span class="sw" style="background:${color(c)}"></span><span>${esc(c)}</span><span class="num">${moneyC(tot[c])}</span><span class="num pct">${fmtPct.format(tot[c] / sum)}</span></div>`).join("");
+  }
+
+  function renderStores() {
+    const base = D.tiendas.filter(t => F.chain === "all" || t.cadena === F.chain);
+    const alerts = base.filter(t => t.sinVenta);
+    $("alertCount").textContent = alerts.length;
+    $("alertCount").className = "pill " + (alerts.length ? "warn" : "good");
+    $("tabTop").setAttribute("aria-selected", tab === "top");
+    $("tabAlert").setAttribute("aria-selected", tab === "alert");
+    const rows = tab === "top" ? base.filter(t => t.venta != null).sort((a, b) => b.venta - a.venta).slice(0, 15) : alerts.sort((a, b) => (b.inv || 0) - (a.inv || 0));
+    const head = `<thead><tr><th>Cadena</th><th>Tienda</th><th>Estado / zona</th><th>Formato</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Inventario</th><th class="n">SKUs con venta</th></tr></thead>`;
+    if (!rows.length) {
+      $("storeTable").innerHTML = head + `<tbody><tr><td colspan="8" class="muted" style="white-space:normal">${tab === "alert" ? "Todas las tiendas con inventario registran venta en la ventana." : "Esta cadena no reporta detalle por tienda."}</td></tr></tbody>`;
+      return;
+    }
+    $("storeTable").innerHTML = head + "<tbody>" + rows.map(t => `<tr>
+      <td><span class="sw" style="background:${color(t.cadena)};margin-right:8px"></span>${esc(t.cadena)}</td>
+      <td>${esc(t.tienda)}${t.no ? ` <span class="muted num">#${esc(t.no)}</span>` : ""}</td>
+      <td>${esc([t.ciudad, t.zona].filter(Boolean).join(", ")) || "—"}</td><td>${esc(t.formato) || "—"}</td>
+      <td class="n">${money(t.venta)}</td><td class="n">${int(t.pz)}</td><td class="n">${int(t.inv)}</td><td class="n">${int(t.skus)}</td></tr>`).join("") + "</tbody>";
+  }
+
+  function renderAll() {
+    if (!D) return;
+    renderFilters(); renderKpis(); renderMultiples(); renderProducts(); renderShare(); renderStores();
+    $("corte").textContent = D.leeme.Corte ? "Corte de datos: " + D.leeme.Corte : "";
+  }
+
+  function renderEmpty(msg) {
+    $("kpis").innerHTML = ["Venta sell-out", "Piezas vendidas", "Precio promedio por pieza", "Tiendas con inventario y sin venta"].map(l => `<div class="kpi"><span class="lab">${l}</span><span class="val">—</span><span class="sub">&nbsp;</span></div>`).join("");
+    $("multiples").innerHTML = `<div class="empty">${esc(msg)}</div>`;
+    $("prodBars").innerHTML = `<div class="empty">${esc(msg)}</div>`;
+    $("shareBar").innerHTML = ""; $("shareList").innerHTML = ""; $("prodLegend").innerHTML = "";
+    $("storeTable").innerHTML = ""; $("trendTable").innerHTML = "";
+  }
+
+  // ---------- tooltip ----------
+  const tip = $("tip");
+  function showTip(ev, html) {
+    tip.innerHTML = html; tip.hidden = false;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    let l = ev.clientX + 14, t = ev.clientY - h - 12;
+    if (l + w > window.innerWidth - 8) l = ev.clientX - w - 14;
+    if (t < 8) t = ev.clientY + 16;
+    tip.style.left = Math.max(8, l) + "px"; tip.style.top = t + "px";
+  }
+  function hideTip() { tip.hidden = true; }
+  document.addEventListener("pointerover", ev => {
+    const s = ev.target.closest && ev.target.closest("[data-tip]");
+    if (!s) return;
+    const [title, c, v, share] = JSON.parse(s.dataset.tip);
+    const show = e => showTip(e, `<b>${esc(title)}</b><div class="tr"><span>${esc(c)}</span><span>${money(v)}</span></div><div class="tr"><span>Participación</span><span>${fmtPct.format(share)}</span></div>`);
+    show(ev);
+    const mv = e => show(e), out = () => { hideTip(); s.removeEventListener("pointermove", mv); s.removeEventListener("pointerleave", out); };
+    s.addEventListener("pointermove", mv); s.addEventListener("pointerleave", out);
+  });
+
+  // ---------- events ----------
+  $("fChain").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; F.chain = b.dataset.c; saveF(); renderAll(); });
+  $("fCat").addEventListener("change", e => { F.cat = e.target.value; F.prod = "all"; saveF(); renderAll(); });
+  $("fProd").addEventListener("change", e => { F.prod = e.target.value; saveF(); renderAll(); });
+  $("fWin").addEventListener("change", e => { F.win = e.target.value; saveF(); renderAll(); });
+  $("prodMore").addEventListener("click", () => { showAllProd = !showAllProd; renderProducts(); });
+  $("tabTop").addEventListener("click", () => { tab = "top"; renderStores(); });
+  $("tabAlert").addEventListener("click", () => { tab = "alert"; renderStores(); });
+  let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => D && renderMultiples(), 150); });
+
+  // ---------- status ----------
+  function setStatus(kind, title, meta) {
+    $("srcDot").className = "src-dot " + kind;
+    $("srcTitle").textContent = title;
+    $("srcMeta").textContent = meta || "";
+  }
+  function banner(title, body, info) {
+    const b = $("banner");
+    if (!title) { b.hidden = true; return; }
+    b.className = "banner" + (info ? " info" : "");
+    b.innerHTML = `<strong>${esc(title)}</strong>${esc(body || "")}`;
+    b.hidden = false;
+  }
+
+  let loadedAt = null;
+  function describeLoaded() {
+    setStatus("ok", "Hoja de Google · Sell-out", [user && user.email, loadedAt && "Actualizado " + fmtDate.format(new Date(loadedAt))].filter(Boolean).join(" · "));
+  }
+
+  // ---------- login ----------
+  const SHEETS_SCOPE = "https://www.googleapis.com/auth/spreadsheets.readonly";
+  let token = null, tokenExp = 0, tokenClient = null, user = null;
+
+  function showGate(msg) {
+    $("gate").hidden = false;
+    document.body.classList.add("locked");
+    const m = $("gateMsg");
+    m.hidden = !msg;
+    m.textContent = msg || "";
+  }
+  function hideGate() {
+    $("gate").hidden = true;
+    document.body.classList.remove("locked");
+  }
+
+  function initAuth(tries = 0) {
+    if (!CLIENT_ID) {
+      $("btnLogin").disabled = true;
+      showGate("Falta configurar el acceso con Google: escribe el Client ID en CLIENT_ID dentro de index.html.");
+      return;
+    }
+    if (!(window.google && google.accounts && google.accounts.oauth2)) {
+      if (tries > 40) { showGate("No se pudo cargar el inicio de sesión de Google. Revisa tu conexión y recarga la página."); return; }
+      setTimeout(() => initAuth(tries + 1), 250);
+      return;
+    }
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SHEETS_SCOPE + " openid email profile",
+      callback: onToken,
+      error_callback: () => showGate("Se cerró la ventana de Google antes de terminar. Intenta de nuevo.")
+    });
+    $("btnLogin").disabled = false;
+    showGate();
+  }
+
+  function onToken(resp) {
+    if (!resp || resp.error) { showGate("Google no autorizó el acceso. Intenta de nuevo."); return; }
+    if (!google.accounts.oauth2.hasGrantedAllScopes(resp, SHEETS_SCOPE)) {
+      showGate("Para ver el tablero, permite que lea tus hojas de cálculo de Google cuando te lo pida.");
+      return;
+    }
+    token = resp.access_token;
+    tokenExp = Date.now() + (Number(resp.expires_in || 3600) - 60) * 1000;
+    afterLogin();
+  }
+
+  async function afterLogin() {
+    user = await api("https://www.googleapis.com/oauth2/v3/userinfo").catch(() => null);
+    try { if (user && user.email) localStorage.setItem("radar-hint", user.email); } catch {}
+    hideGate();
+    loadSheet();
+  }
+
+  function login() {
+    if (!tokenClient) return;
+    let hint = "";
+    try { hint = localStorage.getItem("radar-hint") || ""; } catch {}
+    tokenClient.requestAccessToken(hint ? { hint } : {});
+  }
+
+  function logout() {
+    if (token && window.google && google.accounts && google.accounts.oauth2) google.accounts.oauth2.revoke(token, () => {});
+    token = null; tokenExp = 0; user = null; D = null; loadedAt = null;
+    try { localStorage.removeItem("radar-hint"); } catch {}
+    banner(null);
+    renderEmpty("Inicia sesión para ver el tablero.");
+    showGate();
+  }
+
+  async function api(url) {
+    const r = await fetch(url, { headers: { Authorization: "Bearer " + token } });
+    if (r.status === 401) throw { code: "expired" };
+    if (r.status === 403) throw { code: "forbidden" };
+    if (r.status === 404) throw { code: "not_found" };
+    if (!r.ok) throw { code: "http", status: r.status };
+    return r.json();
+  }
+
+  // One tab of the sheet as row objects keyed by the header row; null when the tab does not exist.
+  async function fetchSheet(name) {
+    try {
+      const j = await api(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(name)}?valueRenderOption=UNFORMATTED_VALUE&dateTimeRenderOption=FORMATTED_STRING`);
+      const v = j.values || [];
+      const head = (v[0] || []).map(x => String(x).trim());
+      return v.slice(1).map(a => {
+        const o = {};
+        head.forEach((k, i) => { o[k] = a[i] === undefined || a[i] === "" ? null : a[i]; });
+        return o;
+      });
+    } catch (e) {
+      if (e.code === "http" && e.status === 400) return null;
+      throw e;
+    }
+  }
+
+  function handleErr(e) {
+    const code = (e && e.code) || "network";
+    if (code === "expired") { token = null; showGate("Tu sesión expiró. Vuelve a iniciar sesión."); return; }
+    if (code === "forbidden" || code === "not_found") {
+      D = null; loadedAt = null;
+      renderEmpty("Inicia sesión con una cuenta que tenga acceso a la hoja.");
+      const who = user && user.email ? `La cuenta ${user.email}` : "Esta cuenta";
+      showGate(`${who} no tiene acceso a la hoja de sell-out. Pide al dueño de la hoja que te la comparta, o entra con otra cuenta.`);
+      return;
+    }
+    const map = {
+      http: ["Google Sheets no entregó los datos.", " Presiona Actualizar en unos minutos."],
+      bad_file: ["La hoja no tiene el formato esperado.", " " + (e && e.message ? e.message : "")],
+      network: ["No se pudo leer la hoja de Google.", " Revisa tu conexión a internet y presiona Actualizar."]
+    };
+    const [t, b] = map[code] || map.network;
+    banner(t, b);
+    if (D) describeLoaded();
+    else { setStatus("err", "No se pudo cargar", user && user.email ? user.email : ""); renderEmpty("Los datos aparecerán aquí en cuanto se lea la hoja."); }
+  }
+
+  // ---------- data flow ----------
+  let busy = false;
+  async function loadSheet() {
+    if (!token) { showGate(); return; }
+    if (Date.now() > tokenExp) { handleErr({ code: "expired" }); return; }
+    if (busy) return;
+    busy = true;
+    setStatus("busy", "Leyendo la hoja de Google…", "Trayendo la versión más reciente");
+    try {
+      const [serie, tiendas, leeme] = await Promise.all([
+        fetchSheet("fact_serie"),
+        fetchSheet("dim_tiendas").catch(() => null),
+        fetchSheet("Leeme").catch(() => null)
+      ]);
+      if (!serie || !serie.length || !("cadena" in serie[0])) throw { code: "bad_file", message: "No se encontró la pestaña fact_serie con la columna cadena." };
+      D = parseWorkbook({ __rows: { fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [] } });
+      loadedAt = Date.now();
+      banner(null);
+      renderAll();
+      describeLoaded();
+    } catch (e) {
+      handleErr(e && e.code ? e : { code: "network" });
+    } finally {
+      busy = false;
+    }
+  }
+
+  $("btnLogin").addEventListener("click", login);
+  $("btnLogout").addEventListener("click", logout);
+  $("btnRefresh").addEventListener("click", loadSheet);
+
+  // Re-read every 10 minutes while the page is visible; catch up when the tab comes back.
+  setInterval(() => { if (token && document.visibilityState === "visible") loadSheet(); }, POLL_MS);
+  document.addEventListener("visibilitychange", () => {
+    if (token && document.visibilityState === "visible" && (!loadedAt || Date.now() - loadedAt > POLL_MS)) loadSheet();
+  });
+
+  renderEmpty("Inicia sesión para ver el tablero.");
+  initAuth();
+})();
+</script>
+</body>
+</html>
