@@ -101,6 +101,24 @@ select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='ht
 .chip[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 .sw{width:10px;height:10px;border-radius:3px;flex:none;display:inline-block}
 
+/* product multi-select */
+.ms{position:relative}
+.ms-btn{display:inline-flex;align-items:center;justify-content:space-between;gap:10px;min-width:220px;max-width:320px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;text-align:left}
+.ms-btn span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ms-btn::after{content:"";flex:none;width:10px;height:6px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%236c776f' stroke-width='1.5'/%3E%3C/svg%3E") no-repeat center}
+.ms-btn.on{border-color:var(--accent);background:var(--accent-soft)}
+.ms-panel{position:absolute;z-index:15;top:calc(100% + 6px);left:0;width:min(380px,calc(100vw - 32px));background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(0,0,0,.14);padding:10px;display:flex;flex-direction:column;gap:8px}
+.ms-panel input[type="search"]{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 10px;font-size:13px}
+.ms-actions{display:flex;gap:14px}
+.ms-actions button{background:none;border:0;padding:0;color:var(--accent);font-weight:600;font-size:12px;cursor:pointer}
+.ms-list{max-height:300px;overflow-y:auto;display:flex;flex-direction:column}
+.ms-opt{display:grid;grid-template-columns:auto minmax(0,1fr);gap:2px 10px;align-items:start;padding:7px 6px;border-radius:6px;cursor:pointer}
+.ms-opt:hover{background:var(--surface-2)}
+.ms-opt input{margin:2px 0 0;accent-color:var(--accent);grid-row:span 2}
+.ms-opt .pn{font-size:13px}
+.ms-opt .ps{font-size:11px;color:var(--muted);font-family:var(--mono)}
+.ms-foot{font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:8px}
+
 /* kpis */
 .kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;display:flex;flex-direction:column;gap:5px}
@@ -282,7 +300,16 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   <section class="filters" aria-label="Filtros">
     <div class="fgroup"><span class="flabel">Cadena</span><div class="chips" id="fChain"></div></div>
     <div class="fgroup"><label class="flabel" for="fCat">Categoría</label><select id="fCat"></select></div>
-    <div class="fgroup"><label class="flabel" for="fProd">Producto</label><select id="fProd"></select></div>
+    <div class="fgroup ms" id="msWrap">
+      <span class="flabel" id="msLabel">Productos</span>
+      <button type="button" class="ms-btn" id="msBtn" aria-haspopup="true" aria-expanded="false" aria-labelledby="msLabel msBtn"><span id="msText">Todos</span></button>
+      <div class="ms-panel" id="msPanel" hidden>
+        <input type="search" id="msSearch" placeholder="Buscar producto o SKU" aria-label="Buscar producto o SKU">
+        <div class="ms-actions"><button type="button" id="msAll">Seleccionar todos</button><button type="button" id="msNone">Limpiar selección</button></div>
+        <div class="ms-list" id="msList" role="group" aria-labelledby="msLabel"></div>
+        <p class="ms-foot" id="msFoot"></p>
+      </div>
+    </div>
   </section>
 
   <section class="kpis" id="kpis" aria-label="Indicadores"></section>
@@ -403,7 +430,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
 
   // ---------- state ----------
   const saved = (() => { try { return JSON.parse(localStorage.getItem("radar-web") || "{}"); } catch { return {}; } })();
-  const F = { chain: saved.chain || "all", cat: saved.cat || "all", prod: saved.prod || "all" };
+  const F = { chain: saved.chain || "all", cat: saved.cat || "all", prods: Array.isArray(saved.prods) ? saved.prods : [] };
   const T = { preset: saved.preset || "all", from: saved.from || null, to: saved.to || null, year: saved.year || null, month: saved.month ?? "all" };
   let D = null, R = { all: true }, tab = "top", showAllProd = false;
   const save = () => { try { localStorage.setItem("radar-web", JSON.stringify({ ...F, ...T })); } catch {} };
@@ -444,6 +471,15 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     });
     const prodCat = {};
     serie.forEach(r => { prodCat[r.producto] = r.categoria; });
+    // SKUs each chain carries: its product catalog plus anything it reports in the series.
+    const catalog = {};
+    const addSku = (cadena, sku, producto, categoria) => {
+      if (!cadena || !producto) return;
+      const m = catalog[cadena] || (catalog[cadena] = new Map());
+      if (!m.has(producto)) m.set(producto, { producto, sku: sku || "", categoria: categoria || prodCat[producto] || "Sin categoría" });
+    };
+    (S.dim_productos || []).forEach(r => addSku(str(r.cadena), str(r.sku_cadena), str(r.producto), str(r.categoria)));
+    S.fact_serie.forEach(r => addSku(str(r.cadena), str(r.sku_cadena), str(r.producto) || str(r.sku_cadena), str(r.categoria)));
     const tiendas = (S.dim_tiendas || []).filter(r => r.cadena).map(r => ({
       cadena: str(r.cadena), no: str(r.tienda_no), tienda: str(r.tienda), ciudad: str(r.ciudad), zona: str(r.estado_zona),
       formato: str(r.formato_segmento), pz: num(r.pz_ventana), venta: num(r.venta_ventana), inv: num(r.inv_actual),
@@ -474,7 +510,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     const tskuChains = new Set(tsku.map(r => r.cadena));
     const fins = serie.filter(r => r.fin != null).map(r => r.fin), inis = serie.filter(r => r.ini != null).map(r => r.ini);
     const closedFins = serie.filter(r => r.fin != null && !r.parcial).map(r => r.fin);
-    return { serie, tiendas, storeIdx, tsku, tskuChains, prodCat, leeme, chains, slot, periods, dated: c => datedSet.has(c),
+    return { serie, tiendas, storeIdx, tsku, tskuChains, prodCat, catalog, leeme, chains, slot, periods, dated: c => datedSet.has(c),
       lastData: fins.length ? Math.max(...fins) : todayNum(), lastClosed: closedFins.length ? Math.max(...closedFins) : null, firstData: inis.length ? Math.min(...inis) : todayNum() };
   }
 
@@ -507,7 +543,17 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   // ---------- selection helpers ----------
   const color = c => D.slot[c] || "var(--muted)";
   const visibleChains = () => F.chain === "all" ? D.chains : D.chains.filter(c => c === F.chain);
-  const prodOk = (producto, categoria) => (F.cat === "all" || (categoria ?? D.prodCat[producto]) === F.cat) && (F.prod === "all" || producto === F.prod);
+  const prodOk = (producto, categoria) => (F.cat === "all" || (categoria ?? D.prodCat[producto]) === F.cat) && (!F.prods.length || F.prods.includes(producto));
+  // Products the visible chain(s) carry, narrowed by category. With one chain, each option shows that chain's SKU.
+  function productOptions() {
+    const by = new Map();
+    visibleChains().forEach(c => (D.catalog[c] ? [...D.catalog[c].values()] : []).forEach(it => {
+      if (F.cat !== "all" && it.categoria !== F.cat) return;
+      const o = by.get(it.producto) || { producto: it.producto, categoria: it.categoria, skus: [], chains: [] };
+      o.skus.push(it.sku); o.chains.push(c); by.set(it.producto, o);
+    }));
+    return [...by.values()].sort((a, b) => a.producto.localeCompare(b.producto, "es"));
+  }
   const rowsFor = c => D.serie.filter(r => r.cadena === c && prodOk(r.producto, r.categoria));
 
   function seriesFor(c, r = R) {
@@ -547,7 +593,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
       add(D.storeIdx.get(x.cadena + "|" + x.no), x.cadena, x.no, x.tienda, x.venta, x.pz);
     });
     const byWindow = [];
-    if (R.all && F.cat === "all" && F.prod === "all") {
+    if (R.all && F.cat === "all" && !F.prods.length) {
       D.tiendas.forEach(t => {
         if (!cs.has(t.cadena) || D.tskuChains.has(t.cadena) || !(t.venta > 0)) return;
         add(t, t.cadena, t.no, t.tienda, t.venta, t.pz);
@@ -582,9 +628,33 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     const cats = [...new Set(D.serie.map(r => r.categoria))].sort();
     if (F.cat !== "all" && !cats.includes(F.cat)) F.cat = "all";
     $("fCat").innerHTML = `<option value="all">Todas</option>` + cats.map(c => `<option ${c === F.cat ? "selected" : ""}>${esc(c)}</option>`).join("");
-    const prods = [...new Set(D.serie.filter(r => F.cat === "all" || r.categoria === F.cat).map(r => r.producto))].sort((a, b) => a.localeCompare(b, "es"));
-    if (F.prod !== "all" && !prods.includes(F.prod)) F.prod = "all";
-    $("fProd").innerHTML = `<option value="all">Todos</option>` + prods.map(p => `<option ${p === F.prod ? "selected" : ""}>${esc(p)}</option>`).join("");
+    renderProductPicker();
+  }
+
+  function renderProductPicker() {
+    const opts = productOptions(), avail = new Set(opts.map(o => o.producto));
+    F.prods = F.prods.filter(p => avail.has(p));
+    const single = visibleChains().length === 1;
+    $("msText").textContent = !F.prods.length ? `Todos (${opts.length})` : F.prods.length === 1 ? F.prods[0] : `${F.prods.length} de ${opts.length} productos`;
+    $("msBtn").classList.toggle("on", F.prods.length > 0);
+    const q = norm($("msSearch").value);
+    const list = $("msList"), top = list.scrollTop, focused = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.p : null;
+    const shown = opts.filter(o => !q || norm(o.producto + " " + o.skus.join(" ")).includes(q));
+    list.innerHTML = shown.length ? shown.map((o, i) => `
+      <label class="ms-opt" for="ms-${i}">
+        <input type="checkbox" id="ms-${i}" data-p="${esc(o.producto)}" ${F.prods.includes(o.producto) ? "checked" : ""}>
+        <span class="pn">${esc(o.producto)}</span>
+        <span class="ps">${esc(single ? (o.skus[0] || o.categoria) : o.chains.join(" · "))}</span>
+      </label>`).join("") : `<p class="muted" style="font-size:13px;padding:6px">Ningún producto coincide con la búsqueda.</p>`;
+    list.scrollTop = top;
+    if (focused) { const el = [...list.querySelectorAll("input")].find(x => x.dataset.p === focused); if (el) el.focus(); }
+    const who = single ? `${visibleChains()[0]} tiene` : "Las cadenas tienen";
+    $("msFoot").textContent = `${who} ${opts.length} producto${opts.length === 1 ? "" : "s"} dado${opts.length === 1 ? "" : "s"} de alta${F.cat !== "all" ? " en " + F.cat : ""}. Sin selección se muestran todos.`;
+  }
+  function toggleMs(open) {
+    $("msPanel").hidden = !open;
+    $("msBtn").setAttribute("aria-expanded", open);
+    if (open) { $("msSearch").value = ""; renderProductPicker(); $("msSearch").focus(); }
   }
 
   function deltaHtml(cur, prev) {
@@ -874,8 +944,19 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     T.preset = "custom"; T.from = $("dFrom").value; T.to = $("dTo").value; rerender();
   });
   $("fChain").addEventListener("click", e => { const b = e.target.closest("[data-c]"); if (!b) return; F.chain = b.dataset.c; rerender(); });
-  $("fCat").addEventListener("change", e => { F.cat = e.target.value; F.prod = "all"; rerender(); });
-  $("fProd").addEventListener("change", e => { F.prod = e.target.value; rerender(); });
+  $("fCat").addEventListener("change", e => { F.cat = e.target.value; rerender(); });
+  $("msBtn").addEventListener("click", () => toggleMs($("msPanel").hidden));
+  $("msSearch").addEventListener("input", () => D && renderProductPicker());
+  $("msList").addEventListener("change", e => {
+    const p = e.target.dataset && e.target.dataset.p;
+    if (p == null) return;
+    F.prods = e.target.checked ? [...new Set([...F.prods, p])] : F.prods.filter(x => x !== p);
+    rerender();
+  });
+  $("msAll").addEventListener("click", () => { F.prods = productOptions().map(o => o.producto); rerender(); });
+  $("msNone").addEventListener("click", () => { F.prods = []; rerender(); });
+  document.addEventListener("pointerdown", e => { if (!$("msPanel").hidden && !$("msWrap").contains(e.target)) toggleMs(false); });
+  document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("msPanel").hidden) { toggleMs(false); $("msBtn").focus(); } });
   $("prodMore").addEventListener("click", () => { showAllProd = !showAllProd; renderProducts(); });
   $("tabTop").addEventListener("click", () => { tab = "top"; renderStores(); });
   $("tabAlert").addEventListener("click", () => { tab = "alert"; renderStores(); });
@@ -1000,14 +1081,15 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     busy = true;
     setStatus("busy", "Leyendo la hoja de Google…", "Trayendo la versión más reciente");
     try {
-      const [serie, tiendas, leeme, tsku] = await Promise.all([
+      const [serie, tiendas, leeme, tsku, productos] = await Promise.all([
         fetchSheet("fact_serie"),
         fetchSheet("dim_tiendas").catch(() => null),
         fetchSheet("Leeme").catch(() => null),
-        fetchSheet("fact_tienda_sku").catch(() => null)
+        fetchSheet("fact_tienda_sku").catch(() => null),
+        fetchSheet("dim_productos").catch(() => null)
       ]);
       if (!serie || !serie.length || !("cadena" in serie[0])) throw { code: "bad_file", message: "No se encontró la pestaña fact_serie con la columna cadena." };
-      D = parseSheets({ fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [], fact_tienda_sku: tsku || [] });
+      D = parseSheets({ fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [], fact_tienda_sku: tsku || [], dim_productos: productos || [] });
       loadedAt = Date.now();
       banner(null); renderAll(); describeLoaded();
     } catch (e) {
