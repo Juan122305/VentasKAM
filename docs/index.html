@@ -510,12 +510,14 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     const tskuChains = new Set(tsku.map(r => r.cadena));
     const fins = serie.filter(r => r.fin != null).map(r => r.fin), inis = serie.filter(r => r.ini != null).map(r => r.ini);
     const closedFins = serie.filter(r => r.fin != null && !r.parcial).map(r => r.fin);
+    const pastFins = fins.filter(f => f <= todayNum());
     return { serie, tiendas, storeIdx, tsku, tskuChains, prodCat, catalog, leeme, chains, slot, periods, dated: c => datedSet.has(c),
-      lastData: fins.length ? Math.max(...fins) : todayNum(), lastClosed: closedFins.length ? Math.max(...closedFins) : null, firstData: inis.length ? Math.min(...inis) : todayNum() };
+      lastData: pastFins.length ? Math.max(...pastFins) : todayNum(), lastClosed: closedFins.length ? Math.max(...closedFins) : null, firstData: inis.length ? Math.min(...inis) : todayNum() };
   }
 
   // ---------- date range ----------
-  // Presets count back from the latest reported day (or today, if the data runs past it).
+  // Presets count back from the last day any chain has reported (periods that end in the future, like the
+  // current month, do not count), so "7 días" lands on the latest reported week instead of an empty one.
   const anchor = () => Math.min(todayNum(), D.lastData);
   function computeRange() {
     const a = anchor(), d = dayDate(a), y = d.getUTCFullYear(), m = d.getUTCMonth();

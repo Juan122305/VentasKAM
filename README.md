@@ -5,7 +5,7 @@ Tablero **Radar Sell-out Autoservicio** de Fresh Harvest, con dos versiones:
 | Versión | Archivo | Quién puede verla |
 |---|---|---|
 | Web con inicio de sesión de Google | `docs/index.html` (GitHub Pages) | Cualquier cuenta de Google con permiso en la hoja |
-| Artifact de claude.ai | `dashboard/index.html` | El dueño y quien tenga acceso en claude.ai |
+| Artifact de claude.ai | `dashboard/index.html` (se genera desde `docs/`) | El dueño y quien tenga acceso en claude.ai |
 
 Este repositorio no guarda datos de ventas: las páginas solo contienen código y leen la hoja de Google al abrirse.
 
@@ -36,3 +36,12 @@ El tablero queda en `https://juan122305.github.io/VentasKAM/`.
 - Fechas: accesos rápidos (7 días, 30 días, este mes, este año, todo), mes por año y rango libre. Un periodo entra si alguno de sus días cae en el rango. Waldo's no trae fechas, así que solo aparece con «Todo».
 - Mapa de ventas por estado: usa el detalle por tienda con fecha (`fact_tienda_sku`) y el estado del catálogo de tiendas. Mapa de [svg-maps](https://github.com/VictorCazanave/svg-maps) (CC BY 4.0).
 - Para cargar datos nuevos, actualiza esa misma hoja. Si cambias de hoja, cambia `SHEET_ID` en `docs/index.html`.
+
+## Mantener los dos tableros iguales
+`docs/index.html` es la versión principal. El tablero de claude.ai se genera a partir de ella:
+
+```
+python3 tools/build_artifact.py
+```
+
+`tools/artifact_flow.js` contiene la parte que lee los datos desde el conector de Google Drive de claude.ai.
