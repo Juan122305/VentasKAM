@@ -50,7 +50,7 @@
     };
     const serie = get("fact_serie");
     if (!serie || !serie.length) throw { code: "bad_file", message: "El archivo no tiene la hoja fact_serie." };
-    return { fact_serie: serie, dim_tiendas: get("dim_tiendas") || [], leeme: get("Leeme") || [], fact_tienda_sku: get("fact_tienda_sku") || [], dim_productos: get("dim_productos") || [] };
+    return { fact_serie: serie, dim_tiendas: get("dim_tiendas") || [], leeme: get("Leeme") || [], fact_tienda_sku: get("fact_tienda_sku") || [], dim_productos: get("dim_productos") || [], estados_tiendas: get("estados_tiendas") || [] };
   }
   function ingest(wb, src) {
     D = parseSheets(workbookRows(wb));

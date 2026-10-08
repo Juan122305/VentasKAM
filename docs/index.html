@@ -464,15 +464,15 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   // Cities, municipalities and chain zones that name only one state (ambiguous ones such as Juárez or Guadalupe are left out).
   const CITY = {
     agu: "AGUASCALIENTES", bcn: "TIJUANA|TIJ|MEXICALI|ENSENADA|TECATE|ROSARITO", bcs: "LA PAZ|CABOS|CABO|COMONDU|LORETO",
-    cam: "CARMEN", chh: "PARRAL|DELICIAS|CAMARGO|OJINAGA|CASAS GRANDES", chp: "COMITAN|TUXTLA|TAPACHULA",
+    cam: "CARMEN", col: "VILLA DE ALVAREZ|MANZANILLO", chh: "PARRAL|DELICIAS|CAMARGO|OJINAGA|CASAS GRANDES", chp: "COMITAN|TUXTLA|TAPACHULA",
     cmx: "COYOACAN|IZTAPALAPA|IZTACALCO|AZCAPOTZALCO|GUSTAVO A MADERO|CUAJIMALPA|MAGDALENA CONTRE|TLALPAN|XOCHIMILCO|TLAHUAC",
     coa: "SALTILLO|TORREON|MONCLOVA|PIEDRAS NEG|PIEDRAS NEGRAS|ACUNA|LAGUNA", dur: "GOMEZ PALACIO|GOMEZ PALCIO",
     gro: "ACAPULCO|CHILPANCINGO|IGUALA", gua: "LEON|IRAPUATO|CELAYA|SALAMANCA|SAN FRANCISCO DEL R", hid: "PACHUCA|TULANCINGO",
     jal: "GUADALAJARA|ZAPOPAN|TLAQUEPAQUE|TLAJOMULCO|TEPATITLAN|CHAPALA|CD GUZMAN|VALLARTA",
-    mex: "NAUCALPAN|CUAUTITLAN|IZCALLI|ECATEPEC|TLALNEPANTLA|ATIZAPAN|COACALCO|CHALCO|HUIXQUILUCAN|IXTAPALUCA|HUEHUETOCA|TOLUCA|METEPEC",
+    mex: "NAUCALPAN|CUAUTITLAN|IZCALLI|ECATEPEC|TLALNEPANTLA|ATIZAPAN|COACALCO|CHALCO|HUIXQUILUCAN|IXTAPALUCA|HUEHUETOCA|TOLUCA|METEPEC|TEXCOCO|CUAUTLALPA",
     mic: "MORELIA|URUAPAN|APATZINGAN", mor: "CUERNAVACA|CUAUTLA|JIUTEPEC", nay: "TEPIC|BAHIA DE BANDERAS",
     nle: "MONTERREY|APODACA|SAN PEDRO GARZA|SAN NICOLAS DE LOS|ESCOBEDO", oax: "SANTA LUCIA DEL CAM", pue: "CHOLULA|TEXMELUC",
-    que: "CORREGIDORA|EL MARQUES", sin: "CULIACAN|GUASAVE|AHOME|MOCHIS|MAZATLAN|NAVOLATO",
+    que: "CORREGIDORA|EL MARQUES|SAN JUAN DEL RIO|JURIQUILLA", sin: "CULIACAN|GUASAVE|AHOME|MOCHIS|MAZATLAN|NAVOLATO",
     slp: "CIUDAD VALLES", son: "HERMOSILLO|GUAYMAS|EMPALME|CAJEME|OBREGON|NOGALES|AGUAPRIETA|NAVOJOA|CABORCA|PENASCO",
     tam: "TAMPICO|MADERO|ALTAMIRA|REYNOSA|MATAMOROS|NUEVO LAREDO|CIUDAD VICTORIA", tla: "APETATITLAN",
     ver: "COATZACOALCOS|BOCA DEL RIO|POZA RICA|FORTIN|ALVARADO|XALAPA|ORIZABA", yuc: "MERIDA"
@@ -515,7 +515,13 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
       formato: str(r.formato_segmento), pz: num(r.pz_ventana), venta: num(r.venta_ventana), inv: num(r.inv_actual),
       skus: num(r.skus_con_venta), sinVenta: bool(r.inv_sin_venta)
     }));
-    tiendas.forEach(t => { t.estado = stateOf(t.zona, t.ciudad); });
+    // Optional "estados_tiendas" tab (cadena, tienda_no, estado) fills in or corrects a store's state; it wins over every rule below.
+    const fixed = new Map();
+    (S.estados_tiendas || []).forEach(r => {
+      const st = stateOf(r.estado ?? r.Estado, "");
+      if (st && r.cadena != null && r.tienda_no != null) fixed.set(str(r.cadena) + "|" + str(r.tienda_no), st);
+    });
+    tiendas.forEach(t => { t.estado = fixed.get(t.cadena + "|" + t.no) || stateOf(t.zona, t.ciudad); });
     const storeIdx = new Map(tiendas.map(t => [t.cadena + "|" + t.no, t]));
     const tsku = (S.fact_tienda_sku || []).filter(r => r.cadena).map(r => {
       const ini = toDay(r.fecha_inicio);
@@ -1161,15 +1167,16 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     busy = true;
     setStatus("busy", "Leyendo la hoja de Google…", "Trayendo la versión más reciente");
     try {
-      const [serie, tiendas, leeme, tsku, productos] = await Promise.all([
+      const [serie, tiendas, leeme, tsku, productos, estados] = await Promise.all([
         fetchSheet("fact_serie"),
         fetchSheet("dim_tiendas").catch(() => null),
         fetchSheet("Leeme").catch(() => null),
         fetchSheet("fact_tienda_sku").catch(() => null),
-        fetchSheet("dim_productos").catch(() => null)
+        fetchSheet("dim_productos").catch(() => null),
+        fetchSheet("estados_tiendas").catch(() => null)
       ]);
       if (!serie || !serie.length || !("cadena" in serie[0])) throw { code: "bad_file", message: "No se encontró la pestaña fact_serie con la columna cadena." };
-      D = parseSheets({ fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [], fact_tienda_sku: tsku || [], dim_productos: productos || [] });
+      D = parseSheets({ fact_serie: serie, dim_tiendas: tiendas || [], leeme: leeme || [], fact_tienda_sku: tsku || [], dim_productos: productos || [], estados_tiendas: estados || [] });
       loadedAt = Date.now();
       banner(null); renderAll(); describeLoaded();
     } catch (e) {

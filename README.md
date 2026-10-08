@@ -33,6 +33,7 @@ El tablero queda en `https://juan122305.github.io/VentasKAM/`.
 - Lee la hoja cada vez que alguien inicia sesión y la vuelve a leer cada 10 minutos mientras está abierta (también con **Actualizar**).
 - Pestañas que espera: `fact_serie` (obligatoria), `dim_tiendas`, `fact_tienda_sku`, `dim_productos` y `Leeme`.
 - Inventario bajo: tienda × SKU con 0 a 2 piezas (ajustable) en el último corte de inventario de cada cadena (`fact_tienda_sku`), con la venta de los últimos 4 periodos.
+- Estados de tiendas: pestaña opcional `estados_tiendas` (cadena, tienda_no, estado) que corrige o completa el estado de cada tienda; tiene prioridad sobre las reglas por ciudad y zona.
 - Productos: selección múltiple. La lista muestra solo los SKUs que tiene dados de alta la cadena elegida (según `dim_productos` y la serie).
 - Fechas: accesos rápidos (7 días, 30 días, este mes, este año, todo), mes por año y rango libre. Un periodo entra si alguno de sus días cae en el rango. Waldo's no trae fechas, así que solo aparece con «Todo».
 - Mapa de ventas por estado: usa el detalle por tienda con fecha (`fact_tienda_sku`) y el estado del catálogo de tiendas. Mapa de [svg-maps](https://github.com/VictorCazanave/svg-maps) (CC BY 4.0).
