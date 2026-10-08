@@ -202,6 +202,11 @@ tr:last-child td{border-bottom:0}
 details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:13px}
 details[open] summary{margin-bottom:10px}
 details .tscroll{max-height:360px;overflow:auto}
+.tscroll.tall{max-height:560px;overflow:auto}
+td.cw{white-space:normal;min-width:170px;max-width:260px}
+td.cw small{display:block;color:var(--muted);font-family:var(--mono);font-size:11px}
+.tabbar{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px}
+.invctl{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2)}
 
 footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:4px;max-width:90ch}
 
@@ -296,7 +301,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   <section class="panel">
     <div class="panel-h">
       <h2>Tendencia de venta por cadena</h2>
-      <p class="muted">Venta en pesos por periodo. Walmart, Waldo's y Al Súper reportan por semana; La Comer por mes. El punto hueco marca un periodo que aún no cierra.</p>
+      <p class="muted">Venta en pesos por periodo, con la frecuencia que reporta cada cadena (semanal o mensual). El punto hueco marca un periodo que aún no cierra.</p>
     </div>
     <div class="multiples" id="multiples"></div>
     <details>
@@ -337,11 +342,17 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
       <h2>Tiendas</h2>
       <p class="muted" id="storeNote"></p>
     </div>
-    <div class="tabs" role="tablist">
-      <button class="tab" role="tab" id="tabTop" aria-selected="true" type="button">Mayor venta</button>
-      <button class="tab" role="tab" id="tabAlert" aria-selected="false" type="button">Inventario sin venta <span class="pill warn" id="alertCount">0</span></button>
+    <div class="tabbar">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tabTop" aria-selected="true" type="button">Mayor venta</button>
+        <button class="tab" role="tab" id="tabAlert" aria-selected="false" type="button">Inventario bajo <span class="pill warn" id="alertCount">0</span></button>
+      </div>
+      <div class="invctl" id="invCtl" hidden>
+        <label for="fInv">Inventario de 0 a</label>
+        <select id="fInv"><option value="0">0 piezas</option><option value="1">1 pieza</option><option value="2">2 piezas</option><option value="3">3 piezas</option><option value="5">5 piezas</option></select>
+      </div>
     </div>
-    <div class="tscroll"><table id="storeTable"></table></div>
+    <div class="tscroll tall"><table id="storeTable"></table></div>
   </section>
 
   <footer>
@@ -389,11 +400,11 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   const dayISO = n => dayDate(n).toISOString().slice(0, 10);
   function toDay(v) {
     if (v == null || v === "") return null;
-    if (v instanceof Date) return isNaN(v) ? null : dayOf(v.getFullYear(), v.getMonth(), v.getDate());
-    if (typeof v === "number") return v > 20000 && v < 90000 ? Math.round(v) - 25569 : null; // número de serie de Sheets/Excel
+    if (v instanceof Date) return isNaN(v) ? null : Math.round(Date.UTC(v.getFullYear(), v.getMonth(), v.getDate(), v.getHours(), v.getMinutes()) / DAY);
+    if (typeof v === "number") return v > 20000 && v < 90000 ? Math.round(v) - 25569 : null; // número de serie de Sheets/Excel (23:00 se redondea al día siguiente)
     const s = String(v).trim();
-    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
-    if (m) return dayOf(+m[1], m[2] - 1, +m[3]);
+    let m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})(?:[ T](\d{1,2}))?/);
+    if (m) return dayOf(+m[1], m[2] - 1, +m[3]) + (m[4] && +m[4] >= 12 ? 1 : 0);
     m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
     if (m) return dayOf(+m[3], m[2] - 1, +m[1]);
     return null;
@@ -406,7 +417,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
 
   // ---------- state ----------
   const saved = (() => { try { return JSON.parse(localStorage.getItem("radar-web") || "{}"); } catch { return {}; } })();
-  const F = { chain: saved.chain || "all", cat: saved.cat || "all", prods: Array.isArray(saved.prods) ? saved.prods : [] };
+  const F = { chain: saved.chain || "all", cat: saved.cat || "all", prods: Array.isArray(saved.prods) ? saved.prods : [], invMax: saved.invMax ?? 2 };
   const T = { preset: saved.preset || "all", from: saved.from || null, to: saved.to || null, year: saved.year || null, month: saved.month ?? "all" };
   let D = null, R = { all: true }, tab = "top", showAllProd = false;
   const save = () => { try { localStorage.setItem("radar-web", JSON.stringify({ ...F, ...T })); } catch {} };
@@ -426,12 +437,31 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     QUE: "que", QUERETARO: "que", ROO: "roo", "QUINTANA ROO": "roo", SLP: "slp", "SAN LUIS POTOSI": "slp", SIN: "sin", SINALOA: "sin",
     SON: "son", SONORA: "son", TAB: "tab", TABASCO: "tab", TAM: "tam", TAMAULIPAS: "tam", TLA: "tla", TLAXCALA: "tla", VER: "ver", VERACRUZ: "ver",
     YUC: "yuc", YUCATAN: "yuc", ZAC: "zac", ZACATECAS: "zac" };
-  const LONG = Object.keys(ST).filter(k => k.length > 4).sort((a, b) => b.length - a.length);
+  // Cities, municipalities and chain zones that name only one state (ambiguous ones such as Juárez or Guadalupe are left out).
+  const CITY = {
+    agu: "AGUASCALIENTES", bcn: "TIJUANA|TIJ|MEXICALI|ENSENADA|TECATE|ROSARITO", bcs: "LA PAZ|CABOS|CABO|COMONDU|LORETO",
+    cam: "CARMEN", chh: "PARRAL|DELICIAS|CAMARGO|OJINAGA|CASAS GRANDES", chp: "COMITAN|TUXTLA|TAPACHULA",
+    cmx: "COYOACAN|IZTAPALAPA|IZTACALCO|AZCAPOTZALCO|GUSTAVO A MADERO|CUAJIMALPA|MAGDALENA CONTRE|TLALPAN|XOCHIMILCO|TLAHUAC",
+    coa: "SALTILLO|TORREON|MONCLOVA|PIEDRAS NEG|PIEDRAS NEGRAS|ACUNA|LAGUNA", dur: "GOMEZ PALACIO|GOMEZ PALCIO",
+    gro: "ACAPULCO|CHILPANCINGO|IGUALA", gua: "LEON|IRAPUATO|CELAYA|SALAMANCA|SAN FRANCISCO DEL R", hid: "PACHUCA|TULANCINGO",
+    jal: "GUADALAJARA|ZAPOPAN|TLAQUEPAQUE|TLAJOMULCO|TEPATITLAN|CHAPALA|CD GUZMAN|VALLARTA",
+    mex: "NAUCALPAN|CUAUTITLAN|IZCALLI|ECATEPEC|TLALNEPANTLA|ATIZAPAN|COACALCO|CHALCO|HUIXQUILUCAN|IXTAPALUCA|HUEHUETOCA|TOLUCA|METEPEC",
+    mic: "MORELIA|URUAPAN|APATZINGAN", mor: "CUERNAVACA|CUAUTLA|JIUTEPEC", nay: "TEPIC|BAHIA DE BANDERAS",
+    nle: "MONTERREY|APODACA|SAN PEDRO GARZA|SAN NICOLAS DE LOS|ESCOBEDO", oax: "SANTA LUCIA DEL CAM", pue: "CHOLULA|TEXMELUC",
+    que: "CORREGIDORA|EL MARQUES", sin: "CULIACAN|GUASAVE|AHOME|MOCHIS|MAZATLAN|NAVOLATO",
+    slp: "CIUDAD VALLES", son: "HERMOSILLO|GUAYMAS|EMPALME|CAJEME|OBREGON|NOGALES|AGUAPRIETA|NAVOJOA|CABORCA|PENASCO",
+    tam: "TAMPICO|MADERO|ALTAMIRA|REYNOSA|MATAMOROS|NUEVO LAREDO|CIUDAD VICTORIA", tla: "APETATITLAN",
+    ver: "COATZACOALCOS|BOCA DEL RIO|POZA RICA|FORTIN|ALVARADO|XALAPA|ORIZABA", yuc: "MERIDA"
+  };
+  const LONG = Object.keys(ST).filter(k => k.length > 4).sort((a, b) => b.length - a.length)
+    .map(k => [k, ST[k]])
+    .concat(Object.entries(CITY).flatMap(([id, list]) => list.split("|").map(k => [k, id])));
+  const words = s => " " + norm(s).replace(/[^A-Z0-9]+/g, " ").trim() + " ";
   function stateOf(zona, ciudad) {
     const z = norm(zona);
     if (ST[z]) return ST[z];
-    const c = norm(ciudad) + " " + z;
-    for (const k of LONG) if (c.includes(k)) return ST[k];
+    const text = words(zona) + words(ciudad);
+    for (const [k, id] of LONG) if (text.includes(" " + k + " ")) return id;
     return null;
   }
 
@@ -440,7 +470,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
       const periodo = str(r.periodo), ini = toDay(r.fecha_inicio), fin = toDay(r.fecha_fin);
       return {
         cadena: str(r.cadena), freq: str(r.frecuencia), periodo, label: str(r.periodo_label) || periodo,
-        key: Number(periodo.replace(/\D/g, "")) || ini || 0, ini, fin: fin ?? ini,
+        key: ini ?? (Number(periodo.replace(/\D/g, "")) || 0), ini, fin: fin ?? ini,
         parcial: bool(r.periodo_parcial), producto: str(r.producto) || str(r.sku_cadena), categoria: str(r.categoria) || "Sin categoría",
         pz: num(r.piezas), venta: num(r.venta_pesos), inv: num(r.inventario_pz), tiendas: num(r.tiendas_con_venta)
       };
@@ -466,7 +496,22 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     const tsku = (S.fact_tienda_sku || []).filter(r => r.cadena).map(r => {
       const ini = toDay(r.fecha_inicio);
       return { cadena: str(r.cadena), no: str(r.tienda_no), tienda: str(r.tienda), ini, fin: toDay(r.fecha_fin) ?? ini,
-        producto: str(r.producto), pz: num(r.piezas), venta: num(r.venta_pesos) };
+        producto: str(r.producto) || str(r.sku_cadena), sku: str(r.sku_cadena), label: str(r.periodo_label) || str(r.periodo),
+        pz: num(r.piezas), venta: num(r.venta_pesos), inv: num(r.inventario_pz) };
+    });
+    // Latest inventory snapshot per chain: the most recent period in which the chain reports store×SKU inventory.
+    const invSnap = {};
+    [...new Set(tsku.map(r => r.cadena))].forEach(c => {
+      const rows = tsku.filter(r => r.cadena === c && r.ini != null);
+      let day = null;
+      rows.forEach(r => { if (r.inv != null && (day == null || r.ini > day)) day = r.ini; });
+      if (day == null) return;
+      const days = [...new Set(rows.map(r => r.ini))].filter(d => d <= day).sort((a, b) => b - a).slice(0, 4);
+      const recent = new Set(days), sold = new Map();
+      rows.forEach(r => { if (recent.has(r.ini)) { const k = r.no + "|" + r.producto; sold.set(k, (sold.get(k) || 0) + (r.pz || 0)); } });
+      const snap = rows.filter(r => r.ini === day && r.inv != null);
+      invSnap[c] = { day, label: snap.length ? snap[0].label : "", periods: days.length,
+        rows: snap.map(r => ({ cadena: c, no: r.no, tienda: r.tienda, producto: r.producto, sku: r.sku, inv: r.inv, sold4: sold.get(r.no + "|" + r.producto) || 0 })) };
     });
     const leeme = {};
     (S.leeme || []).forEach(r => { const k = str(r.Campo || r.campo); if (k) leeme[k] = str(r["Descripción"] || r.Descripcion || r.descripcion); });
@@ -487,7 +532,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     const fins = serie.filter(r => r.fin != null).map(r => r.fin), inis = serie.filter(r => r.ini != null).map(r => r.ini);
     const closedFins = serie.filter(r => r.fin != null && !r.parcial).map(r => r.fin);
     const pastFins = fins.filter(f => f <= todayNum());
-    return { serie, tiendas, storeIdx, tsku, tskuChains, prodCat, catalog, leeme, chains, slot, periods, dated: c => datedSet.has(c),
+    return { serie, tiendas, storeIdx, tsku, tskuChains, invSnap, prodCat, catalog, leeme, chains, slot, periods, dated: c => datedSet.has(c),
       lastData: pastFins.length ? Math.max(...pastFins) : todayNum(), lastClosed: closedFins.length ? Math.max(...closedFins) : null, firstData: inis.length ? Math.min(...inis) : todayNum() };
   }
 
@@ -581,6 +626,19 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     return { list: [...m.values()].filter(s => s.venta > 0), byWindow };
   }
 
+  // Store×SKU pairs at or under the inventory limit in each chain's latest snapshot (date filter does not apply: it is the current shelf).
+  function lowStock() {
+    const max = Number(F.invMax), out = [], snaps = [];
+    visibleChains().forEach(c => {
+      const sn = D.invSnap[c];
+      if (!sn) return;
+      snaps.push([c, sn]);
+      sn.rows.forEach(r => { if (r.inv <= max && prodOk(r.producto)) out.push(r); });
+    });
+    out.sort((a, b) => a.inv - b.inv || b.sold4 - a.sold4 || a.cadena.localeCompare(b.cadena));
+    return { rows: out, snaps, stores: new Set(out.map(r => r.cadena + "|" + r.no)).size };
+  }
+
   // ---------- rendering ----------
   function renderDateBar() {
     document.querySelectorAll("#presets button").forEach(b => b.setAttribute("aria-pressed", b.dataset.p === T.preset));
@@ -644,7 +702,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
 
   function renderKpis() {
     const cur = totals(R), pr = prevRange(R), prev = pr ? totals(pr) : null;
-    const alerts = D.tiendas.filter(t => t.sinVenta && (F.chain === "all" || t.cadena === F.chain)).length;
+    const low = lowStock();
     const hidden = undatedHidden();
     const sub = hidden.length ? `Sin ${hidden.join(", ")} (no reporta fechas)` : cur.open ? "Incluye periodos que aún no cierran" : "Sell-out reportado por las cadenas";
     const price = cur.q ? cur.v / cur.q : null, pprice = prev && prev.q ? prev.v / prev.q : null;
@@ -652,8 +710,8 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
       <div class="kpi lead"><span class="lab">Ventas</span><span class="val">${cur.any ? fmtMoney2.format(cur.v) : "—"}</span><span class="sub">${esc(sub)}</span><div class="cmp">${deltaHtml(cur.any ? cur.v : null, prev && prev.any ? prev.v : null)}</div></div>
       <div class="kpi"><span class="lab">Piezas</span><span class="val">${cur.any ? int(cur.q) : "—"}</span><span class="sub">Unidades vendidas</span><div class="cmp">${deltaHtml(cur.any ? cur.q : null, prev && prev.any ? prev.q : null)}</div></div>
       <div class="kpi"><span class="lab">Precio promedio</span><span class="val">${price != null ? fmtMoney2.format(price) : "—"}</span><span class="sub">Venta por pieza</span><div class="cmp">${deltaHtml(price, pprice)}</div></div>
-      <div class="kpi"><span class="lab">Inventario sin venta</span><span class="val">${int(alerts)}</span><span class="sub">Tiendas con inventario y 0 ventas (último corte)</span>
-        <div class="cmp"><span class="pill ${alerts ? "warn" : "good"}">${alerts ? "▲ Revisar anaquel" : "✓ Todo con venta"}</span></div></div>`;
+      <div class="kpi"><span class="lab">Inventario bajo</span><span class="val">${int(low.rows.length)}</span><span class="sub">SKUs en tienda con 0 a ${F.invMax} pz (último corte)</span>
+        <div class="cmp"><span class="pill ${low.rows.length ? "warn" : "good"}">${low.rows.length ? `▲ ${int(low.stores)} tiendas por surtir` : "✓ Sin tiendas en riesgo"}</span></div></div>`;
   }
 
   function nice(v) { if (!(v > 0)) return 1; const e = 10 ** Math.floor(Math.log10(v)), f = v / e; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * e; }
@@ -842,7 +900,8 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
     cs.filter(c => D.tskuChains.has(c)).forEach(c => {
       const ds = D.tsku.filter(x => x.cadena === c && x.ini != null);
       if (!ds.length) return;
-      const a = Math.min(...ds.map(x => x.ini)), b = Math.max(...ds.map(x => x.fin));
+      let a = Infinity, b = -Infinity;
+      ds.forEach(x => { if (x.ini < a) a = x.ini; if (x.fin > b) b = x.fin; });
       const all = D.tiendas.filter(t => t.cadena === c).length, withState = D.tiendas.filter(t => t.cadena === c && t.estado).length;
       parts.push(`${c}: detalle por tienda del ${fmtDayShort.format(dayDate(a))} al ${fmtDay.format(dayDate(b))}${!withState ? ", sin estado en su catálogo" : withState < all ? ` (${all - withState} tiendas sin estado)` : ""}`);
     });
@@ -852,21 +911,39 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   }
 
   function renderStores() {
-    const { list } = storeAgg();
-    const alerts = D.tiendas.filter(t => t.sinVenta && (F.chain === "all" || t.cadena === F.chain));
-    $("alertCount").textContent = alerts.length;
-    $("alertCount").className = "pill " + (alerts.length ? "warn" : "good");
+    const low = lowStock();
+    $("alertCount").textContent = int(low.rows.length);
+    $("alertCount").className = "pill " + (low.rows.length ? "warn" : "good");
     $("tabTop").setAttribute("aria-selected", tab === "top");
     $("tabAlert").setAttribute("aria-selected", tab === "alert");
-    $("storeNote").textContent = tab === "top"
-      ? "Venta por tienda en las fechas elegidas. Inventario y SKUs son del último corte."
-      : "Tiendas con inventario y sin venta en la ventana de la cadena (posible producto fuera de anaquel).";
+    $("invCtl").hidden = tab !== "alert";
+    $("fInv").value = String(F.invMax);
+    if (tab === "alert") {
+      const cortes = low.snaps.map(([c, sn]) => `${c} ${sn.label || fmtDay.format(dayDate(sn.day))}`).join(" · ");
+      const sinInv = visibleChains().filter(c => !D.invSnap[c]);
+      $("storeNote").textContent = `Tiendas con 0 a ${F.invMax} piezas de cada SKU en el último corte de inventario de cada cadena (no depende del filtro de fechas)${cortes ? ": " + cortes : ""}. ` +
+        `La venta es de los últimos 4 periodos de la cadena; las de más venta van primero porque se agotan antes.` + (sinInv.length ? ` ${sinInv.join(", ")} no reporta inventario por tienda.` : "");
+      const head = `<thead><tr><th>Cadena</th><th>Tienda</th><th>Estado / zona</th><th>Producto</th><th class="n">Inventario</th><th class="n">Venta últ. 4 periodos</th><th>Corte</th></tr></thead>`;
+      if (!low.rows.length) { $("storeTable").innerHTML = head + `<tbody><tr><td colspan="7" class="muted" style="white-space:normal">Ninguna tienda tiene ${F.invMax} piezas o menos de los productos elegidos.</td></tr></tbody>`; return; }
+      $("storeTable").innerHTML = head + "<tbody>" + low.rows.map(r => {
+        const t = D.storeIdx.get(r.cadena + "|" + r.no), sn = D.invSnap[r.cadena];
+        return `<tr>
+        <td><span class="sw" style="background:${color(r.cadena)};margin-right:8px"></span>${esc(r.cadena)}</td>
+        <td class="cw">${esc(r.tienda || (t && t.tienda) || r.no)}<small>#${esc(r.no)}</small></td>
+        <td class="cw">${esc(t ? [t.ciudad, t.zona].filter(Boolean).join(", ") : "") || "—"}</td>
+        <td class="cw">${esc(r.producto)}${r.sku && r.sku !== r.producto ? `<small>${esc(r.sku)}</small>` : ""}</td>
+        <td class="n"><span class="pill ${r.inv <= 0 ? "bad" : "warn"}">${r.inv <= 0 ? "Agotado" : int(r.inv) + " pz"}</span></td>
+        <td class="n">${int(r.sold4)} pz</td>
+        <td>${esc(sn.label || fmtDay.format(dayDate(sn.day)))}</td></tr>`;
+      }).join("") + "</tbody>";
+      return;
+    }
+    const { list } = storeAgg();
+    $("storeNote").textContent = "Venta por tienda en las fechas elegidas. Inventario y SKUs son del último corte.";
     const head = `<thead><tr><th>Cadena</th><th>Tienda</th><th>Estado / zona</th><th>Formato</th><th class="n">Venta</th><th class="n">Piezas</th><th class="n">Inventario</th><th class="n">SKUs con venta</th></tr></thead>`;
-    const rows = tab === "top"
-      ? list.sort((a, b) => b.venta - a.venta).slice(0, 15)
-      : alerts.map(t => ({ ...t, zona: [t.ciudad, t.zona].filter(Boolean).join(", ") })).sort((a, b) => (b.inv || 0) - (a.inv || 0));
+    const rows = list.sort((a, b) => b.venta - a.venta).slice(0, 15);
     if (!rows.length) {
-      $("storeTable").innerHTML = head + `<tbody><tr><td colspan="8" class="muted" style="white-space:normal">${tab === "alert" ? "Todas las tiendas con inventario registran venta." : "Sin venta por tienda para estas fechas y filtros."}</td></tr></tbody>`;
+      $("storeTable").innerHTML = head + `<tbody><tr><td colspan="8" class="muted" style="white-space:normal">Sin venta por tienda para estas fechas y filtros.</td></tr></tbody>`;
       return;
     }
     $("storeTable").innerHTML = head + "<tbody>" + rows.map(t => `<tr>
@@ -884,7 +961,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   }
 
   function renderEmpty(msg) {
-    $("kpis").innerHTML = ["Ventas", "Piezas", "Precio promedio", "Inventario sin venta"].map(l => `<div class="kpi"><span class="lab">${l}</span><span class="val">—</span><span class="sub">&nbsp;</span></div>`).join("");
+    $("kpis").innerHTML = ["Ventas", "Piezas", "Precio promedio", "Inventario bajo"].map(l => `<div class="kpi"><span class="lab">${l}</span><span class="val">—</span><span class="sub">&nbsp;</span></div>`).join("");
     ["multiples", "prodList", "regList"].forEach(id => $(id).innerHTML = `<div class="empty">${esc(msg)}</div>`);
     ["shareBar", "shareList", "prodLegend", "storeTable", "trendTable", "map", "mapLegend", "regTotal"].forEach(id => $(id).innerHTML = "");
     $("regNote").textContent = ""; $("storeNote").textContent = "";
@@ -938,6 +1015,7 @@ footer{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:
   $("prodMore").addEventListener("click", () => { showAllProd = !showAllProd; renderProducts(); });
   $("tabTop").addEventListener("click", () => { tab = "top"; renderStores(); });
   $("tabAlert").addEventListener("click", () => { tab = "alert"; renderStores(); });
+  $("fInv").addEventListener("change", e => { F.invMax = Number(e.target.value); rerender(); });
   let rz; window.addEventListener("resize", () => { clearTimeout(rz); rz = setTimeout(() => D && renderMultiples(), 150); });
 
   // ---------- status ----------
